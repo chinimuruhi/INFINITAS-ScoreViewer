@@ -1,2 +1,5 @@
 # INFINITAS-ScoreViewer
 ScoreViewer for INFINITAS
+
+ReactとTypeScriptの勉強も兼ねて製作中です。
+React初めてなので時間かかるかも
