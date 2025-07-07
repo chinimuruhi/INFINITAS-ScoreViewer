@@ -157,7 +157,7 @@ const DpTablePage = () => {
               const lamp = clearData[key] ?? 0;
               const bg = colorMap[lamp];
               const title = titleMap[song.id] || song.id;
-              const diffLabel = song.difficulty === 'A' ? '' : `[${song.difficulty}]`;
+              const diffLabel = `[${song.difficulty}]`;
               const detailLink = `https://zasa.sakura.ne.jp/dp/music.php?id=${song.snj_id}`;
               const index = difficultyIndexMap[song.difficulty];
               const officialLevel = chartInfo[song.id]?.level?.dp?.[index];
