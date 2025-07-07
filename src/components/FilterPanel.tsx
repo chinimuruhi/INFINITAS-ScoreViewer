@@ -81,7 +81,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="unlock-label">INFINITAS解禁状況</InputLabel>
+          <InputLabel id="unlock-label">INFINITAS解禁状況（Reflux）</InputLabel>
           <Select
             labelId="unlock-label"
             value={pendingFilters.unlocked ?? ''}
