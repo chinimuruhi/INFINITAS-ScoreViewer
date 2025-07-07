@@ -105,7 +105,7 @@ const RadarPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
         </RadarChart>
       </Box>
 
-      <Typography variant="h6" align="center" sx={{ mt: 2 }}>総合レーダー合計: {totalAverage}</Typography>
+      <Typography variant="h6" align="center" sx={{ mt: 2 }}>Total: {totalAverage}</Typography>
 
       <Tabs value={selectedTab} onChange={(_, v) => setSelectedTab(v)} sx={{ mt: 2 }} variant="scrollable" scrollButtons="auto">
         {categories.map((cat, i) => (
