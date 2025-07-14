@@ -13,6 +13,7 @@ import Sp11TablePage from './pages/Sp11TablePage';
 import DpTablePage from './pages/DpTablePage';
 import CpiPage from './pages/CpiPage';
 import BpiPage from './pages/BpiPage';
+import EreterPage from './pages/EreterPage';
 import RadarPage from './pages/RadarPage';
 import StatusPage from './pages/StatusPage';
 import SettingsPage from './pages/SettingsPage';
@@ -34,6 +35,7 @@ function App() {
     { text: 'DP表', path: '/dp', mode: 'DP' },
     { text: 'CPI', path: '/cpi', mode: 'SP' },
     { text: 'BPI', path: '/bpi', mode: 'both' },
+    { text: 'ereter.net', path: '/ereter', mode: 'DP' },
     { text: 'レーダー', path: '/radar', mode: 'both' },
     { text: 'ステータス', path: '/status', mode: 'both' },
     { text: '設定', path: '/settings', mode: 'both' },
@@ -92,6 +94,7 @@ function App() {
           <Route path="/dp" element={mode === 'DP' ? <DpTablePage mode={mode} /> : <Typography>このページはDPモードでのみ利用可能です。</Typography>} />
           <Route path="/cpi" element={mode === 'SP' ? <CpiPage mode={mode} /> : <Typography>このページはSPモードでのみ利用可能です。</Typography>} />
           <Route path="/bpi" element={<BpiPage mode={mode} />} />
+          <Route path="/ereter" element={mode === 'DP' ? <EreterPage mode={mode} /> : <Typography>このページはDPモードでのみ利用可能です。</Typography>} />
           <Route path="/radar" element={<RadarPage mode={mode} />} />
           <Route path="/status" element={<StatusPage mode={mode} />} />
           <Route path="/settings" element={<SettingsPage mode={mode} />} />
