@@ -28,7 +28,7 @@ const EreterPage = () => {
   const [labelMap, setLabelMap] = useState<{ [key: string]: number }>({});
   const [labelNameMap, setLabelNameMap] = useState<{ [key: number]: string }>({});
   const [versionMap, setVersionMap] = useState<any>({});
-  const [estimatedSkill, setEstimatedSkill] = useState<number | null>(null);
+  //const [estimatedSkill, setEstimatedSkill] = useState<number | null>(null);
 
   const userUnlockStatus = (id: string, difficulty: string): boolean => {
     const local = JSON.parse(localStorage.getItem('data') || '{}');
@@ -83,7 +83,6 @@ const EreterPage = () => {
 
   const lampAchieved = (lamp: number, threshold: number): boolean => lamp >= threshold;
   const diffValueKey = { easy: 'ec_diff', hard: 'hc_diff', exhard: 'exh_diff' };
-  const lampValues = { easy: 3, hard: 5, exhard: 6 };
 
   const filteredSongs = useMemo(() => songs.filter(song => {
     const key = `${song.id}_${song.difficulty}`;
@@ -104,60 +103,54 @@ const EreterPage = () => {
     return true;
   }), [songs, clearData, chartInfo, filters, versionMap, labelMap]);
 
+/*
   useEffect(() => {
     let isCancelled = false;
-    const margin = 0.001;
     const targets: { b: number; success: boolean }[] = [];
+    const lampValues = { easy: 3, hard: 5, exhard: 6 };
+    const a = 3;
 
     for (const song of songs) {
-      const key = `${song.id}_${song.difficulty}`;
-      const lamp = clearData[key];
-      if (lamp === undefined || lamp === 0) continue;
-      for (const lampValueKey in lampValues) {
-        const keyTyped = lampValueKey as keyof typeof lampValues;
-        const success = lamp >= lampValues[keyTyped];
-        const diff = song[diffValueKey[keyTyped]];
-        targets.push({ b: diff, success });
-      }
+        const key = `${song.id}_${song.difficulty}`;
+        const lamp = clearData[key];
+        if (lamp === undefined || lamp === 0) continue;
+        for (const lampValueKey in lampValues) {
+          const keyTyped = lampValueKey as keyof typeof lampValues;
+          const success = lamp >= lampValues[keyTyped];
+          const diff = song[diffValueKey[keyTyped]];
+          targets.push({ b: diff, success });
+        }
     }
-
+    
     if (targets.length === 0) {
       setEstimatedSkill(null);
       return;
     }
 
-    let oldtheta = 1;
-    let theta = 0;
+    const logLikelihood = (theta: number) => {
+      return targets.reduce((sum, { b, success }) => {
+        const p = 1 / (1 + Math.exp(-a * (theta - b)));
+        return sum + (success ? Math.log(p) : Math.log(1 - p));
+      }, 0);
+    };
 
     const compute = () => {
-      while (Math.abs(theta - oldtheta) >= margin) {
-        oldtheta = theta;
-        theta = calculateTheta(targets, theta);
+      let bestTheta = 0;
+      let bestLL = -Infinity;
+      for (let t = -5; t <= 20; t += 0.01) {
+        const ll = logLikelihood(t);
+        if (ll > bestLL) {
+          bestLL = ll;
+          bestTheta = t;
+        }
       }
-      if (!isCancelled) setEstimatedSkill(theta);
+      if (!isCancelled) setEstimatedSkill(bestTheta);
     };
 
     setTimeout(compute, 0);
-
-    return () => {
-      isCancelled = true;
-    };
+    return () => { isCancelled = true; };
   }, [songs, clearData]);
-
-  const calculateTheta = (targets: { b: number; success: boolean }[], theta: number): number => {
-    const learningRate = 1;
-    const a = 1.7;
-    let gradient = 0;
-
-    targets.forEach(target => {
-      const p = 1 / (1 + Math.exp(-a * (theta - target.b)));
-      const y = target.success ? 1 : 0;
-      gradient += (y - p) * a;
-    });
-
-    theta += learningRate * gradient / targets.length;
-    return theta;
-  };
+*/
 
   const totalCount = filteredSongs.length;
   const stats = {
@@ -186,6 +179,10 @@ const EreterPage = () => {
 
       <Typography variant="h4" gutterBottom>DP Ereter 難易度表</Typography>
 
+      {/* 
+      リコメンド計算がどうにもerter.netと離れてしまうので一旦廃止
+      http://walkure.net/hakkyou/komakai.html
+      上記を参考に最尤推定法で計算を行ったが、低難易度の未エクハ等の外れ値に大きく影響を受ける
       {estimatedSkill === null ? (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CircularProgress size={20} />
@@ -201,6 +198,7 @@ const EreterPage = () => {
           </Typography>
         </Box>
       )}
+      */}
 
       <Box sx={{ my: 2 }}>
         {(['easy', 'clear', 'hard', 'exhard', 'fullcombo'] as const).map(key => (
@@ -225,24 +223,31 @@ const EreterPage = () => {
         <Box key={section} sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ mb: 1 }}>{section}</Typography>
           <Grid container spacing={2}>
-            {groupedSongs[section].map(song => {
-              const key = `${song.id}_${song.difficulty}`;
-              const lamp = clearData[key] ?? 0;
-              const bg = colorMap[lamp];
-              const title = titleMap[song.id] || song.id;
-              const diffLabel = song.difficulty === 'A' ? '[A]' : song.difficulty === 'H' ? '[H]' : song.difficulty === 'L' ? '[L]' : '';
-              return (
-                <Grid item xs={6} sm={4} md={2} key={key}>
-                  <Paper sx={{ p: 1.2, height: '100%', backgroundColor: bg }} elevation={3}>
-                    <Typography variant="body2" fontWeight="bold">
-                      {title} {diffLabel}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      MISS: {missData[key] == null || missData[key] === 99999 ? '-' : missData[key]}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              );
+          {groupedSongs[section]
+              .slice()
+              .sort((a, b) => b[diffValueKey[activeTab]] - a[diffValueKey[activeTab]])
+              .map(song => {
+                const key = `${song.id}_${song.difficulty}`;
+                const lamp = clearData[key] ?? 0;
+                const bg = colorMap[lamp];
+                const title = titleMap[song.id] || song.id;
+                const diffLabel = song.difficulty === 'A' ? '[A]' : song.difficulty === 'H' ? '[H]' : song.difficulty === 'L' ? '[L]' : '';
+                const detailedDiff = song[diffValueKey[activeTab]];
+                return (
+                  <Grid item xs={6} sm={4} md={2} key={key}>
+                    <Paper sx={{ p: 1.2, height: '100%', backgroundColor: bg }} elevation={3}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {title} {diffLabel}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        ★{detailedDiff.toFixed(1)}
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        MISS: {missData[key] == null || missData[key] === 99999 ? '-' : missData[key]}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                );
             })}
           </Grid>
         </Box>
