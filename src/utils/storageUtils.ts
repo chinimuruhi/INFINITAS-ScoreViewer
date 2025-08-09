@@ -231,6 +231,7 @@ export async function mergeWithStorage(parsed: ParsedData, isReflux: boolean) {
         let updated: { [key: string]: any }  = {};
         let diff: { [key: string]: any }  = {};
         let timestamp: { [key: string]: any }  = {};
+
         if(Object.keys(oldData).length > 0 && Object.keys(oldTS).length > 0){
           // 既プレイ楽曲
           updated = {
@@ -305,7 +306,7 @@ export async function mergeWithStorage(parsed: ParsedData, isReflux: boolean) {
         }
         // 登録共通処理
         mergedData[mode][songId][entry.difficulty] = updated;
-        if(entry.score !== 0 && entry.cleartype !== 0 && entry.misscount !== defaultMisscount){
+        if(entry.score !== 0 || entry.cleartype !== 0 || entry.misscount !== defaultMisscount){
           if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
           mergedTS[mode][songId][entry.difficulty] = timestamp;
         }
