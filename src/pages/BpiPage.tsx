@@ -45,7 +45,7 @@ const pgf = (num: number, maxScore: number): number => {
 };
 
 // BpiPageコンポーネント
-const BpiPage = ({ mode }: { mode: 'SP' }) => {
+const BpiPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
   const [gradeType, setGradeType] = useState<'aaa_bpi' | 'max_minus_bpi'>('aaa_bpi');
   const [level, setLevel] = useState<11 | 12>(12);
   const [songs, setSongs] = useState<any[]>([]);

@@ -37,7 +37,6 @@ function App() {
     { text: 'BPI', path: '/bpi', mode: 'both' },
     { text: 'ereter.net', path: '/ereter', mode: 'DP' },
     { text: 'レーダー', path: '/radar', mode: 'both' },
-    { text: 'ステータス', path: '/status', mode: 'both' },
     { text: '設定', path: '/settings', mode: 'both' },
     { text: '手動編集', path: '/manual', mode: 'both' }
   ];
@@ -96,7 +95,6 @@ function App() {
           <Route path="/bpi" element={<BpiPage mode={mode} />} />
           <Route path="/ereter" element={mode === 'DP' ? <EreterPage mode={mode} /> : <Typography>このページはDPモードでのみ利用可能です。</Typography>} />
           <Route path="/radar" element={<RadarPage mode={mode} />} />
-          <Route path="/status" element={<StatusPage mode={mode} />} />
           <Route path="/settings" element={<SettingsPage mode={mode} />} />
           <Route path="/manual" element={<ManualEditPage mode={mode} />} />
         </Routes>

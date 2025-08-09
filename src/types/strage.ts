@@ -6,9 +6,16 @@ export type ScoreEntry = {
 };
 
 export type DiffEntry = {
-    score?: NewOldNumber;
-    misscount?: NewOldNumber;
-    cleartype?: NewOldNumber;
+    score: NewOldNumber;
+    misscount: NewOldNumber;
+    cleartype: NewOldNumber;
+};
+
+export type TimestampEntry = {
+    lastplay: string,
+    scoreupdated: string,
+    lampupdated: string,
+    misscountupdated: string
 };
 
 export type NewOldNumber = {

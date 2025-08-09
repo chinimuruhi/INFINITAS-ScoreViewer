@@ -4,12 +4,12 @@ import {
   SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { parseCsv, parseTsv, mergeWithStorage } from '../utils/storageUtils';
+import { parseOfficialCsv, parseTsv, parseIDCCsv, mergeWithStorage } from '../utils/storageUtils';
 
 const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setDarkMode }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'SP' | 'DP'>('SP');
-  const [format, setFormat] = useState<'official' | 'reflux'>('reflux');
+  const [format, setFormat] = useState<'official' | 'reflux' | 'idc'>('reflux');
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
@@ -24,12 +24,13 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
     setWarnings([]);
     setFailedTitles([]);
 
-    try {
+    //try {
       if (!file.name.endsWith('.csv') && !file.name.endsWith('.tsv')) {
         throw new Error('拡張子がcsvまたはtsvではありません');
       }
 
-      const text = await file.text();
+      // ファイルの読み込み
+      const text = await readFileAsText(file);
       let result;
       let isReflux = false;
 
@@ -37,16 +38,21 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
         if (!text.includes('タイトル') || !text.includes('スコア')) {
           throw new Error('公式CSVとして認識できません');
         }
-        result = await parseCsv(text, mode);
+        result = await parseOfficialCsv(text, mode);
+      } else if (format === 'idc') {
+        if (!text.includes('LV') || !text.includes('Score')) {
+          throw new Error('INFINITAS打鍵カウンタCSVとして認識できません');
+        }
+        result = await parseIDCCsv(text);
       } else {
-        if (!text.includes('EX Score') || !text.includes('Lamp')) {
+        if (!text.includes('Type') || !text.includes('Label')) {
           throw new Error('Reflux TSVとして認識できません');
         }
         result = await parseTsv(text);
         isReflux = true;
       }
 
-      const { data, diffs, failedTitles } = await mergeWithStorage(result, isReflux);
+      const { data, diffs, timestamps, failedTitles } = await mergeWithStorage(result, isReflux);
 
       if (failedTitles.length > 0) {
         setFailedTitles(failedTitles);
@@ -57,10 +63,43 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
 
       localStorage.setItem('data', JSON.stringify(data));
       localStorage.setItem('diff', JSON.stringify(diffs));
+      localStorage.setItem('timestamps', JSON.stringify(timestamps));
 
-    } catch (e: any) {
-      setError(`読み込み失敗: ${e.message}`);
+    //} catch (e: any) {
+    //  setError(`読み込み失敗: ${e}`);
+    //}
+  };
+
+  // ファイルのエンコーディングに応じてテキストを読み込む
+  const readFileAsText = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    let text = '';
+
+    // 'official' の場合、UTF-8 with BOMを処理
+    if (format === 'official') {
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      text = decoder.decode(uint8Array);
+      // BOMを取り除く
+      if (text.charCodeAt(0) === 0xFEFF) {
+        text = text.substring(1);
+      }
     }
+
+    // 'idc' の場合、Shift JISを処理
+    else if (format === 'idc') {
+      const decoder = new TextDecoder('shift-jis', { fatal: true });
+      text = decoder.decode(uint8Array);
+    }
+
+    // 'reflux' の場合、UTF-8をそのまま処理
+    else if (format === 'reflux') {
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      text = decoder.decode(uint8Array);
+    }
+
+    return text;
   };
 
   const handleReport = () => {
@@ -91,22 +130,43 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
           >
             <MenuItem value="official">公式CSV</MenuItem>
             <MenuItem value="reflux">Reflux TSV</MenuItem>
+            <MenuItem value="idc">INFINITAS打鍵カウンタCSV</MenuItem>
           </Select>
         </FormControl>
 
         {format === 'official' && (
-          <FormControl fullWidth>
-            <InputLabel id="mode-label">モード</InputLabel>
-            <Select
-              labelId="mode-label"
-              value={mode}
-              label="モード"
-              onChange={(e: SelectChangeEvent) => setMode(e.target.value as any)}
-            >
-              <MenuItem value="SP">SP</MenuItem>
-              <MenuItem value="DP">DP</MenuItem>
-            </Select>
-          </FormControl>
+          <>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              beatmania IIDXの公式HP（https://p.eagate.573.jp/game/2dx/）からダウンロードできるスコアデータCSVです。文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+            </Typography>
+            <Alert severity="warning">
+              CPI（https://cpi.makecir.com/）やBPI（https://bpi.poyashi.me/）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
+            </Alert>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel id="mode-label">モード</InputLabel>
+              <Select
+                labelId="mode-label"
+                value={mode}
+                label="モード"
+                onChange={(e: SelectChangeEvent) => setMode(e.target.value as any)}
+              >
+                <MenuItem value="SP">SP</MenuItem>
+                <MenuItem value="DP">DP</MenuItem>
+              </Select>
+            </FormControl>
+          </>
+        )}
+
+        {format === 'idc' && (
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            INFINITAS打鍵カウンタ（https://github.com/dj-kata/inf_daken_counter_obsw）で出力できるCSVです。文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+          </Typography>
+        )}
+
+        {format === 'reflux' && (
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Reflux（https://github.com/olji/Reflux）で出力できるTSVです。文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
+          </Typography>
         )}
       </Box>
 
