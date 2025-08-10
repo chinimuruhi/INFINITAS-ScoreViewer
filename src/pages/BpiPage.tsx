@@ -10,6 +10,7 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 import FilterPanel, { FilterState } from '../components/FilterPanel';
 
 // BPI計算の関数
@@ -45,7 +46,8 @@ const pgf = (num: number, maxScore: number): number => {
 };
 
 // BpiPageコンポーネント
-const BpiPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
+const BpiPage = () => {
+  const { mode } = useAppContext();
   const [gradeType, setGradeType] = useState<'aaa_bpi' | 'max_minus_bpi'>('aaa_bpi');
   const [level, setLevel] = useState<11 | 12>(12);
   const [songs, setSongs] = useState<any[]>([]);
@@ -137,7 +139,8 @@ const BpiPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
     if (percentage < 15 / 18) return 'AA+' + (score - Math.ceil(notes * 14 / 9)).toString();
     if (percentage < 16 / 18) return 'AAA-' + (Math.ceil(notes * 16 / 9) - score).toString();
     if (percentage < 17 / 18) return 'AAA+' + (score - Math.ceil(notes * 16 / 9)).toString();
-    return 'MAX-' + (notes * 2 - score).toString();
+    if (percentage <= 1)return 'MAX-' + (notes * 2 - score).toString();
+    return 'invalidScore';
   };
 
   const getGap = (type: string, notes: number, score: number) => {

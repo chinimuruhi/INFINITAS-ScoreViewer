@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import FilterPanel, { FilterState } from '../components/FilterPanel';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 
 const colorMap: { [key: number]: string } = {
   0: '#FFFFFF',
@@ -17,6 +18,7 @@ const colorMap: { [key: number]: string } = {
 };
 
 const EreterPage = () => {
+  const { mode } = useAppContext();
   const [songs, setSongs] = useState<any[]>([]);
   const [titleMap, setTitleMap] = useState<{ [key: string]: string }>({});
   const [clearData, setClearData] = useState<{ [key: string]: number }>({});
@@ -32,7 +34,7 @@ const EreterPage = () => {
 
   const userUnlockStatus = (id: string, difficulty: string): boolean => {
     const local = JSON.parse(localStorage.getItem('data') || '{}');
-    const song = local['DP']?.[id]?.[difficulty];
+    const song = local[mode]?.[id]?.[difficulty];
     return song?.unlocked ?? false;
   };
 
@@ -50,7 +52,7 @@ const EreterPage = () => {
       ]);
 
       const local = JSON.parse(localStorage.getItem('data') || '{}');
-      const user = local['DP'] || {};
+      const user = local[mode] || {};
       const clear: { [key: string]: number } = {};
       const miss: { [key: string]: number } = {};
       for (const id in user) {

@@ -22,3 +22,8 @@ export type NewOldNumber = {
     new: number;
     old: number;
 }
+
+export type ReplaceEntry = {
+    from: string,
+    to: string
+}

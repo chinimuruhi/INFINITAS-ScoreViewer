@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem,
-  SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions
+  SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { parseOfficialCsv, parseTsv, parseIDCCsv, mergeWithStorage } from '../utils/storageUtils';
+import { parseOfficialCsv, parseTsv, parseIDCCsv, mergeWithCSVEntries } from '../utils/storageUtils';
+import { getCurrentFormattedDate } from '../utils/dateUtils';
+import { useAppContext } from '../context/AppContext';
+import LinkComponent from '../components/LinkComponent'; 
 
-const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setDarkMode }) => {
+const CsvLoaderPage = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'SP' | 'DP'>('SP');
+  const { mode, setMode } = useAppContext();
   const [format, setFormat] = useState<'official' | 'reflux' | 'idc'>('reflux');
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState<boolean>(false);
   const [failedTitles, setFailedTitles] = useState<string[]>([]);
+  const [djName, setDjName] = useState<string>('');
+  const [isDjNameEmpty, setIsDjNameEmpty] = useState<boolean>(true);
+
+  // 保存されているDJNameを取得
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (storedUser.djname) {
+      setDjName(storedUser.djname);
+      setIsDjNameEmpty(false);
+    }
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -24,7 +38,7 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
     setWarnings([]);
     setFailedTitles([]);
 
-    //try {
+    try {
       if (!file.name.endsWith('.csv') && !file.name.endsWith('.tsv')) {
         throw new Error('拡張子がcsvまたはtsvではありません');
       }
@@ -52,7 +66,7 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
         isReflux = true;
       }
 
-      const { data, diffs, timestamps, failedTitles } = await mergeWithStorage(result, isReflux);
+      const { data, diffs, timestamps, failedTitles } = await mergeWithCSVEntries(result, isReflux);
 
       if (failedTitles.length > 0) {
         setFailedTitles(failedTitles);
@@ -65,9 +79,11 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
       localStorage.setItem('diff', JSON.stringify(diffs));
       localStorage.setItem('timestamps', JSON.stringify(timestamps));
 
-    //} catch (e: any) {
-    //  setError(`読み込み失敗: ${e}`);
-    //}
+      const lastUpdated = getCurrentFormattedDate();
+      localStorage.setItem('user', JSON.stringify({ djname: djName, lastupdated: lastUpdated }));
+    } catch (e: any) {
+      setError(`読み込み失敗: ${e}`);
+    }
   };
 
   // ファイルのエンコーディングに応じてテキストを読み込む
@@ -103,14 +119,14 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
   };
 
   const handleReport = () => {
-    const message = encodeURIComponent(`@ci_public\n以下の曲のIDが取得できませんでした:\n${failedTitles.join('\n')}\n`);
-    const url = `https://x.com/intent/tweet?text=${message}`;
+    const message = encodeURIComponent(`@ci_public\n以下の曲のIDが取得できませんでした:\n${failedTitles.join('\n')}\n\nformat=${format}\n`);
+    const url = `https://x.com/intent/tweet?hashtags=inf_sv_error&text=${message}`;
     window.open(url, '_blank');
   };
 
   const handleSuccessDialogClose = () => {
     setSuccessDialogOpen(false);
-    navigate('/new');
+    navigate('/diff');
   };
 
   return (
@@ -118,6 +134,20 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
       <Typography variant="h4" gutterBottom>
         CSV/TSV 読み込み
       </Typography>
+
+
+      { isDjNameEmpty && (
+        <>
+          <TextField
+            label="DJ Name"
+            value={djName}
+            onChange={(e) => setDjName(e.target.value)}
+            inputProps={{ maxLength: 20 }}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+        </>
+      )}
 
       <Box sx={{ mb: 2 }}>
         <FormControl fullWidth sx={{ mb: 2 }}>
@@ -128,20 +158,14 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
             label="形式"
             onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
           >
-            <MenuItem value="official">公式CSV</MenuItem>
             <MenuItem value="reflux">Reflux TSV</MenuItem>
-            <MenuItem value="idc">INFINITAS打鍵カウンタCSV</MenuItem>
+            <MenuItem value="idc">INFINITAS打鍵カウンタCSV (beta)</MenuItem>
+            <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
           </Select>
         </FormControl>
 
         {format === 'official' && (
           <>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              beatmania IIDXの公式HP（https://p.eagate.573.jp/game/2dx/）からダウンロードできるスコアデータCSVです。文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
-            </Typography>
-            <Alert severity="warning">
-              CPI（https://cpi.makecir.com/）やBPI（https://bpi.poyashi.me/）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
-            </Alert>
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel id="mode-label">モード</InputLabel>
               <Select
@@ -154,19 +178,41 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
                 <MenuItem value="DP">DP</MenuItem>
               </Select>
             </FormControl>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              beatmania IIDXの公式HP(<LinkComponent url="https://p.eagate.573.jp/game/2dx/">https://p.eagate.573.jp/game/2dx/</LinkComponent>)からダウンロードできるスコアデータCSVです。
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+            </Typography>
+            <Alert severity="warning">
+              CPI（<LinkComponent url="https://cpi.makecir.com/">https://cpi.makecir.com/</LinkComponent>）やBPI（<LinkComponent url="https://bpi.poyashi.me/">https://bpi.poyashi.me/</LinkComponent>）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
+            </Alert>
           </>
         )}
 
         {format === 'idc' && (
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            INFINITAS打鍵カウンタ（https://github.com/dj-kata/inf_daken_counter_obsw）で出力できるCSVです。文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
-          </Typography>
+          <>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              INFINITAS打鍵カウンタ（<LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">https://github.com/dj-kata/inf_daken_counter_obsw</LinkComponent>）で出力できるCSVです。
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+            </Typography>
+            <Alert severity="warning">
+              全曲における動作確認ができておらず、一部楽曲の読み込みに失敗する可能性がございます。楽曲の読み込みに失敗した場合は報告いただけますと幸いです。
+            </Alert>
+          </>
         )}
 
         {format === 'reflux' && (
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Reflux（https://github.com/olji/Reflux）で出力できるTSVです。文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
-          </Typography>
+          <>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Reflux（<LinkComponent url="https://github.com/olji/Reflux">https://github.com/olji/Reflux</LinkComponent>）で出力できるTSVです。
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
+            </Typography>
+          </>
         )}
       </Box>
 
@@ -196,7 +242,7 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
         <DialogTitle>読み込み成功</DialogTitle>
         <DialogContent>
           <Typography variant="body2" gutterBottom>
-            以下の楽曲IDが解決できませんでした。
+            以下の楽曲が読み込めませんでした。修正のため、報告いただけますと幸いです。
           </Typography>
           <Box>
             {failedTitles.map((title, i) => <div key={i}>{title}</div>)}
@@ -204,7 +250,7 @@ const CsvLoaderPage: React.FC<{ setDarkMode: (val: boolean) => void }> = ({ setD
         </DialogContent>
         <DialogActions>
           <Button onClick={handleReport}>報告する</Button>
-          <Button onClick={() => { setReportDialogOpen(false); navigate('/new'); }}>OK</Button>
+          <Button onClick={() => { setReportDialogOpen(false); navigate('/diff'); }}>OK</Button>
         </DialogActions>
       </Dialog>
     </Container>

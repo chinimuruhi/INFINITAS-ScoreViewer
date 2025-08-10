@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import FilterPanel, { FilterState } from '../components/FilterPanel';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 
 const colorMap: { [key: number]: string } = {
   0: '#FFFFFF',
@@ -16,7 +17,8 @@ const colorMap: { [key: number]: string } = {
   7: '#FF9966'
 };
 
-const Sp11TablePage = ({ mode }: { mode: 'SP' }) => {
+const Sp11TablePage = () => {
+  const { mode } = useAppContext();
   const [songs, setSongs] = useState<any[]>([]);
   const [difficultyLabels, setDifficultyLabels] = useState<{ [key: string]: { [key: string]: string } }>({});
   const [titleMap, setTitleMap] = useState<{ [key: string]: string }>({});

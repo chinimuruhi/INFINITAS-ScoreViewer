@@ -13,8 +13,11 @@ import {
   TableRow,
   CircularProgress,
   StepIconClassKey,
+  Button,
 } from '@mui/material';
-import { ungzip } from 'pako';
+import { ungzip, gzip } from 'pako';
+import { base64UrlDecode, base64UrlEncode } from '../utils/base64Utils'
+import { useAppContext } from '../context/AppContext';
 
 const diffLabel: { [key: string]: string } = {
   B: 'BEGINNER',
@@ -57,6 +60,8 @@ const getGrade = (percentage: number): string => {
   return 'AAA';
 };
 
+const urlLengthMax = 12227;
+
 const getDetailGrade = (score: number, notes: number): string => {
   const percentage = (score || 0) / (notes * 2);
   if (percentage < 4 / 18) return 'E-' + (Math.ceil(notes * 4 / 9) - score).toString();
@@ -73,16 +78,20 @@ const getDetailGrade = (score: number, notes: number): string => {
   if (percentage < 15 / 18) return 'AA+' + (score - Math.ceil(notes * 14 / 9)).toString();
   if (percentage < 16 / 18) return 'AAA-' + (Math.ceil(notes * 16 / 9) - score).toString();
   if (percentage < 17 / 18) return 'AAA+' + (score - Math.ceil(notes * 16 / 9)).toString();
-  return 'MAX-' + (notes * 2 - score).toString();
+  if (percentage <= 1)return 'MAX-' + (notes * 2 - score).toString();
+  return 'invalidScore';
 };
 
-const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
+const DiffPage = () => {
+  const { mode } = useAppContext();
   const [titleMap, setTitleMap] = useState<{ [key: string]: string }>({});
   const [chartInfo, setChartInfo] = useState<any>({});
   const [diff, setDiff] = useState<any>({});
+  const [user, setUser] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [excludeNewSongs, setExcludeNewSongs] = useState(false);
-  const [firstSortFinished, setfirstSortFinished] = useState(false);
+  const [isShared, setIsShared] = useState(false);
+  const [isUrldataValid, setIsUrldataValid] = useState(true);
 
   // ソートの状態をそれぞれ分けて管理
   const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({
@@ -109,8 +118,30 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
       const chartJson = JSON.parse(ungzip(new Uint8Array(chartBuffer), { to: 'string' }));
       setChartInfo(chartJson);
 
-      const stored = JSON.parse(localStorage.getItem('diff') || '{}');
-      setDiff(stored);
+      const urlParams = new URLSearchParams(window.location.search);
+      const data = urlParams.get('data');
+      if (data) {
+        // URLパラメータにdataがある場合は、それをデコードして使用
+        let inflatedData;
+        try{
+          const decodedData = base64UrlDecode(data);
+          const inflatedDataRaw = ungzip(new Uint8Array(decodedData.split(',').map(num => parseInt(num))), { to: 'string' });
+          inflatedData = JSON.parse(inflatedDataRaw)
+        } catch (error) {
+          inflatedData = { 'diff': {}, 'user': {} };
+          setIsUrldataValid(false);
+        }
+        setDiff(inflatedData['diff']);
+        setUser(inflatedData['user'])
+        setIsShared(true);
+      } else {
+        // dataがない場合はlocalStorageから読み込む
+        const storedDiff = JSON.parse(localStorage.getItem('diff') || '{}');
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        setDiff(storedDiff);
+        setUser(storedUser);
+        setIsShared(false);
+      }
     } catch (error) {
       console.error('データの読み込みエラー:', error);
     } finally {
@@ -176,10 +207,56 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
     });
   };
 
+  const handleShare = () => {
+    const data = { diff, user }
+    const jsonString = JSON.stringify(data);
+    const compressedData = gzip(jsonString, { to: 'string' });
+    const base64Data = base64UrlEncode(compressedData);
+    //const url = encodeURIComponent(`${window.location.origin}/new?data=${base64Data}`);
+    //const originUrl = window.location.origin;
+    const originUrl = 'https://chinimuruhi.github.io/INFINITAS-ScoreViewer';
+    const url = `${originUrl}/new?data=${base64Data}`
+
+    // ツイート文面を作成
+    let tweetText = `${user.djname} さんの更新差分\n`
+    if(processed.clearUpdatesCount['SP'] > 0){
+      tweetText += `ランプ更新(SP)： ${processed.clearUpdatesCount['SP']}件\n`
+    }
+    if(processed.scoreUpdatesCount['SP'] > 0){
+      tweetText += `スコア更新(SP)： ${processed.scoreUpdatesCount['SP']}件\n`
+    }
+    if(processed.missUpdatesCount['SP'] > 0){
+      tweetText += `BP更新(SP)： ${processed.missUpdatesCount['SP']}件\n`
+    }
+    if(processed.clearUpdatesCount['DP'] > 0){
+      tweetText += `ランプ更新(DP)： ${processed.clearUpdatesCount['DP']}件\n`
+    }
+    if(processed.scoreUpdatesCount['DP'] > 0){
+      tweetText += `スコア更新(DP)： ${processed.scoreUpdatesCount['DP']}件\n`
+    }
+    if(processed.missUpdatesCount['DP'] > 0){
+      tweetText += `BP更新(DP)： ${processed.missUpdatesCount['DP']}件\n`
+    }
+
+    tweetText += '\n'
+
+    let twitterUrl;
+    // TwitterのURLを生成
+    if(url.length >= urlLengthMax){
+      twitterUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(originUrl)}&hashtags=inf_sv&text=${encodeURIComponent(tweetText + '(更新データが多すぎるため共有URLの生成に失敗しました)\n\n')}`;
+    }else{
+      twitterUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&hashtags=inf_sv&text=${encodeURIComponent(tweetText)}\n`;
+    }
+    window.open(twitterUrl, '_blank');
+  };
+
   const processed = useMemo(() => {
     const clearUpdates: any[] = [];
     const scoreUpdates: any[] = [];
     const missUpdates: any[] = [];
+    const clearUpdatesCount = { 'SP': 0, 'DP': 0 };
+    const scoreUpdatesCount = { 'SP': 0, 'DP': 0 };
+    const missUpdatesCount = { 'SP': 0, 'DP': 0 };
 
     if (diff[mode]) {
       for (const id in diff[mode]) {
@@ -189,14 +266,10 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
           const notes = chartInfo[id]?.notes?.[mode.toLowerCase()]?.[['B', 'N', 'H', 'A', 'L'].indexOf(difficulty)] || 0;
           const title = titleMap[id] || id;
 
-          if (excludeNewSongs) {
-            if (entry?.cleartype?.old === 0 || entry?.score?.old === 0 || entry?.misscount?.old === 99999) {
-              continue;
-            }
-          }
-
           // クリアタイプ更新
           if (entry?.cleartype?.new !== entry?.cleartype?.old && entry?.cleartype?.new > 1) {
+            clearUpdatesCount[mode]++;
+            if(excludeNewSongs && entry?.cleartype?.old === 0) continue;
             clearUpdates.push({
               id, title, difficulty, lv,
               before: entry.cleartype.old,
@@ -208,6 +281,8 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
 
           // スコア更新
           if (entry?.score?.new !== entry?.score?.old) {
+            scoreUpdatesCount[mode]++;
+            if(excludeNewSongs && entry?.cleartype?.old === 0) continue;
             const pBefore = entry.score.old / (notes * 2);
             const pAfter = entry.score.new / (notes * 2);
             scoreUpdates.push({
@@ -222,6 +297,8 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
 
           // ミスカウント更新
           if (entry?.misscount?.new !== entry?.misscount?.old) {
+            missUpdatesCount[mode]++;
+            if(excludeNewSongs && entry?.misscount?.old === 99999) continue;
             missUpdates.push({
               id, title, difficulty, lv,
               beforeMisscount: entry.misscount.old === 99999 ? '-' : entry.misscount.old,
@@ -233,7 +310,7 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
       }
     }
 
-    return { clearUpdates: sortedData(clearUpdates, 'afterLamp', 'desc'), scoreUpdates: sortedData(scoreUpdates, 'grade', 'desc'), missUpdates: sortedData(missUpdates, 'bp', 'asc') };
+    return { clearUpdates: sortedData(clearUpdates, 'afterLamp', 'desc'), scoreUpdates: sortedData(scoreUpdates, 'grade', 'desc'), missUpdates: sortedData(missUpdates, 'bp', 'asc'), clearUpdatesCount, scoreUpdatesCount, missUpdatesCount };
   }, [diff, chartInfo, titleMap, mode, excludeNewSongs]);
 
   // データが存在しない場合の条件
@@ -242,14 +319,36 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
   if (loading) return <CircularProgress />;
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5">更新情報</Typography>
+    <Box sx={{ p: 2, position: 'relative' }}>
+      {isUrldataValid && <Typography variant="h5">{user.djname ? user.djname : '名無し'}さんの更新差分 {user.lastupdated ? `(${user.lastupdated})` :''}</Typography>}
 
-      <FormControlLabel
-        control={<Checkbox checked={excludeNewSongs} onChange={(e) => setExcludeNewSongs(e.target.checked)} />}
-        label="初プレー楽曲を除外する"
-        sx={{ my: 2 }}
-      />
+      {hasUpdates && !isShared && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleShare}
+          sx={{
+            position: 'absolute',
+            backgroundColor: 'black',
+            color: 'white',
+            top: 15, 
+            right: 16,
+            '&:hover': {
+              backgroundColor: '#333333', // ホバー時の背景色を少し明るく
+            },
+          }}
+        >
+          𝕏でポスト
+        </Button>
+      )}
+      
+      {isUrldataValid && 
+        <FormControlLabel
+          control={<Checkbox checked={excludeNewSongs} onChange={(e) => setExcludeNewSongs(e.target.checked)} />}
+          label="初プレー楽曲を除外する"
+          sx={{ my: 2 }}
+        />
+      }
 
       {processed.clearUpdates.length > 0 && (
         <>
@@ -341,9 +440,10 @@ const NewPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
         </>
       )}
 
-      {!hasUpdates && <Typography variant="h6">更新がありません</Typography>}
+      {isShared && !isUrldataValid && <Typography variant="h6">共有データが破損しているため表示できませんでした。</Typography>}
+      {!hasUpdates && isUrldataValid && <Typography variant="h6">更新がありません</Typography>}
     </Box>
   );
 };
 
-export default NewPage;
+export default DiffPage;

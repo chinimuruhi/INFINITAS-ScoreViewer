@@ -3,6 +3,7 @@ import {
   Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop, LinearProgress
 } from '@mui/material';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 import FilterPanel, { FilterState } from '../components/FilterPanel';
 
 const colorMap: { [key: number]: string } = {
@@ -18,7 +19,8 @@ const colorMap: { [key: number]: string } = {
 
 const cpiTypes = ['easy', 'clear', 'hard', 'exh', 'fc'] as const;
 
-const CpiPage = ({ mode }: { mode: 'SP'}) => {
+const CpiPage = () => {
+  const { mode } = useAppContext();
   const [songs, setSongs] = useState<any[]>([]);
   const [filters, setFilters] = useState<FilterState>({});
   const [titleMap, setTitleMap] = useState<{ [key: string]: string }>({});

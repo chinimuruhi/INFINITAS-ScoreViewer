@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Tooltip } from 'recharts';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 
 const categories = ['NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOFLAN'] as const;
 const categoryColors: Record<string, string> = {
@@ -12,7 +13,8 @@ const categoryColors: Record<string, string> = {
 };
 const difficultyIndexMap = { B: 0, N: 1, H: 2, A: 3, L: 4 };
 
-const RadarPage = ({ mode }: { mode: 'SP' | 'DP' }) => {
+const RadarPage = () => {
+  const { mode } = useAppContext();
   const [radarData, setRadarData] = useState<Record<string, any>[]>([]);
   const [topSongs, setTopSongs] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);

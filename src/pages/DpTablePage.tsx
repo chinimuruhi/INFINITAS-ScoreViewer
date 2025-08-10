@@ -3,6 +3,7 @@ import {
   Container, Typography, Grid, Paper, Box, CircularProgress, Backdrop, Tabs, Tab, LinearProgress
 } from '@mui/material';
 import { ungzip } from 'pako';
+import { useAppContext } from '../context/AppContext';
 import FilterPanel, { FilterState } from '../components/FilterPanel';
 
 const colorMap = {
@@ -13,6 +14,7 @@ const colorMap = {
 const difficultyIndexMap = { B: 0, N: 1, H: 2, A: 3, L: 4 };
 
 const DpTablePage = () => {
+  const { mode } = useAppContext();
   const [songList, setSongList] = useState<any[]>([]);
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [chartInfo, setChartInfo] = useState<Record<string, any>>({});
@@ -53,7 +55,7 @@ const DpTablePage = () => {
         expandedSongs.sort((a, b) => b.value - a.value);
 
         const local = JSON.parse(localStorage.getItem('data') || '{}');
-        const user = local['DP'] || {};
+        const user = local[mode] || {};
         const clear: Record<string, number> = {};
         const miss: Record<string, number> = {};
         for (const id in user) {
@@ -82,7 +84,7 @@ const DpTablePage = () => {
     if (s.value < activeRange || s.value >= activeRange + 1) return false;
     const key = `${s.id}_${s.difficulty}`;
     const lamp = clearData[key] ?? 0;
-    const unlocked = (localStorage.getItem('data') && JSON.parse(localStorage.getItem('data') || '{}')?.['DP']?.[s.id]?.[s.difficulty]?.unlocked) ?? false;
+    const unlocked = (localStorage.getItem('data') && JSON.parse(localStorage.getItem('data') || '{}')?.[mode]?.[s.id]?.[s.difficulty]?.unlocked) ?? false;
 
     if (filters.cleartype && filters.cleartype.length > 0 && !filters.cleartype.includes(lamp)) return false;
     if (filters.unlocked !== undefined && filters.unlocked !== unlocked) return false;
