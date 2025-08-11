@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Container, CssBaseline, AppBar, Toolbar, Typography, IconButton,
   Drawer, List, ListItemButton, ListItemText, ListItemIcon, ToggleButton,
@@ -36,6 +36,7 @@ const AppShell: React.FC = () => {
   const { mode, setMode } = useAppContext();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleDrawer = (open: boolean) => () => setDrawerOpen(open);
 
@@ -55,6 +56,18 @@ const AppShell: React.FC = () => {
   ];
 
   const visibleMenu = menuItems.filter(item => item.mode === 'both' || item.mode === mode);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const redirect = urlParams.get('redirect');
+    
+    const params = new URLSearchParams(location.search);
+    params.delete('redirect');
+    
+    if (redirect) {
+      navigate(`${redirect}?${params.toString()}`);
+    }
+  }, [location.search, navigate]);
 
   return (
     <>

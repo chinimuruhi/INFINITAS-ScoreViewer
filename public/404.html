@@ -7,16 +7,13 @@
   <title>Page Not Found</title>
   <script>
     // 現在のURLのパスとクエリパラメータを取得してリダイレクト
-    const currentUrl = window.location.pathname + window.location.search;
-    //const baseUrl = window.location.origin + "/INFINITAS-ScoreViewer";
-    const baseUrl = window.location.origin;
-    console.log(currentUrl);
-    console.log(baseUrl);
-    
-    // もし現在のURLがすでにbasePath（/INFINITAS-ScoreViewer）を含んでいればリダイレクトしない
-    if (!currentUrl.startsWith(baseUrl)) {
-      window.location.replace(baseUrl + currentUrl);  // リダイレクト先にパスとGETパラメータを付けてリダイレクト
-    }
+    const prm = window.location.search;
+    const baseUrl = window.location.origin + "/INFINITAS-ScoreViewer";
+    const currentPath = window.location.pathname;
+    const modifiedPath = currentPath.replace(/^\/INFINITAS-ScoreViewer/, "");
+    const url = baseUrl + prm + (prm.includes('?') ? '&' : '?') + 'redirect=' + encodeURIComponent(modifiedPath);
+    console.log(url);
+    window.location.replace(url); 
   </script>
 </head>
 <body>
