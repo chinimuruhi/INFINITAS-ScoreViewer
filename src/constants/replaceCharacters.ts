@@ -1,4 +1,7 @@
-import { ReplaceEntry } from '../types/strage';
+type ReplaceEntry = {
+    from: string,
+    to: string
+}
 
 export const replaceMap: ReplaceEntry[] = [
     {

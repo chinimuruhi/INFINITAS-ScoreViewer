@@ -1,0 +1,1 @@
+export const appKeys = ['user', 'data', 'diff', 'timestamps'];

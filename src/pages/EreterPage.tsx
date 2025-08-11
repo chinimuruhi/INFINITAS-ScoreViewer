@@ -1,111 +1,79 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop, LinearProgress
 } from '@mui/material';
-import FilterPanel, { FilterState } from '../components/FilterPanel';
+import FilterPanel from '../components/FilterPanel';
+import LampAchieveProgress from '../components/LampAchieveProgress';
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
-
-const colorMap: { [key: number]: string } = {
-  0: '#FFFFFF',
-  1: '#CCCCCC',
-  2: '#FF66CC',
-  3: '#99FF99',
-  4: '#99CCFF',
-  5: '#FF6666',
-  6: '#FFFF99',
-  7: '#FF9966'
-};
+import { clearColorMap } from '../constants/colorConstrains';
+import { convertDataToIdDiffKey} from '../utils/scoreDataUtils';
+import { isMatchSong } from '../utils/filterUtils';
+import { defaultMisscount } from '../constants/defaultValues';
+import { getLampAchiveCount } from '../utils/lampUtils';
 
 const EreterPage = () => {
-  const { mode } = useAppContext();
+  const { mode, filters, setFilters } = useAppContext();
   const [songs, setSongs] = useState<any[]>([]);
   const [titleMap, setTitleMap] = useState<{ [key: string]: string }>({});
   const [clearData, setClearData] = useState<{ [key: string]: number }>({});
   const [missData, setMissData] = useState<{ [key: string]: number }>({});
+  const [unlockedData, setUnlockedData] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState<'easy' | 'hard' | 'exhard'>('easy');
-  const [filters, setFilters] = useState<FilterState>({});
   const [loading, setLoading] = useState(true);
   const [chartInfo, setChartInfo] = useState<any>({});
-  const [labelMap, setLabelMap] = useState<{ [key: string]: number }>({});
-  const [labelNameMap, setLabelNameMap] = useState<{ [key: number]: string }>({});
-  const [versionMap, setVersionMap] = useState<any>({});
+  const [konamiInfInfo, setKonamiInfInfo] = useState<any>({});
+  const [songInfo, setSongInfo] = useState<any>({});
   //const [estimatedSkill, setEstimatedSkill] = useState<number | null>(null);
-
-  const userUnlockStatus = (id: string, difficulty: string): boolean => {
-    const local = JSON.parse(localStorage.getItem('data') || '{}');
-    const song = local[mode]?.[id]?.[difficulty];
-    return song?.unlocked ?? false;
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [songRes, titleRes, chartRes, labelRes, labelNamesRes, versionRes, versionNamesRes] = await Promise.all([
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/ereter/songs_dict.json').then(res => res.json()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then(res => res.json()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(res => res.arrayBuffer()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then(res => res.json()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/label.json').then(res => res.json()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/song-info.json.gz').then(res => res.arrayBuffer()),
-        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/version.json').then(res => res.json())
-      ]);
+      try { 
+        const [songRes, titleRes, chartRes, konamiInfInfoRes, songInfoGz] = await Promise.all([
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/ereter/songs_dict.json').then(res => res.json()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then(res => res.json()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(res => res.arrayBuffer()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then(res => res.json()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/song-info.json.gz').then(res => res.arrayBuffer()),
+        ]);
 
-      const local = JSON.parse(localStorage.getItem('data') || '{}');
-      const user = local[mode] || {};
-      const clear: { [key: string]: number } = {};
-      const miss: { [key: string]: number } = {};
-      for (const id in user) {
-        const entries = user[id];
-        for (const diff in entries) {
-          clear[`${id}_${diff}`] = entries[diff].cleartype;
-          miss[`${id}_${diff}`] = entries[diff].misscount;
-        }
+        const local = JSON.parse(localStorage.getItem('data') || '{}');
+        const { clear, misscount, unlocked } = convertDataToIdDiffKey(local, mode);
+
+        setSongs(Object.entries(songRes).flatMap(([id, diffs]: any) =>
+          Object.entries(diffs).map(([diff, data]: any) => ({ id, difficulty: diff, ...data }))));
+        setTitleMap(titleRes);
+        setChartInfo(JSON.parse(new TextDecoder().decode(ungzip(chartRes))));
+        setSongInfo(JSON.parse(new TextDecoder().decode(ungzip(songInfoGz))));
+        setKonamiInfInfo(konamiInfInfoRes);
+        setClearData(clear);
+        setMissData(misscount);
+        setUnlockedData(unlocked);
+      } finally {
+        setLoading(false);
       }
-
-      setSongs(Object.entries(songRes).flatMap(([id, diffs]: any) =>
-        Object.entries(diffs).map(([diff, data]: any) => ({ id, difficulty: diff, ...data }))));
-      setTitleMap(titleRes);
-      setChartInfo(JSON.parse(new TextDecoder().decode(ungzip(chartRes))));
-      const versionDecoded = JSON.parse(new TextDecoder().decode(ungzip(versionRes)));
-      const versionMap: any = {};
-      for (const id in versionDecoded) versionMap[id] = { version: versionDecoded[id].version };
-      setVersionMap(versionMap);
-      const labelParsed: { [key: string]: number } = {};
-      for (const id in labelRes) labelParsed[id] = labelRes[id].label;
-      setLabelMap(labelParsed);
-      setLabelNameMap(labelNamesRes);
-      setClearData(clear);
-      setMissData(miss);
-      setLoading(false);
     };
 
     fetchData();
   }, []);
 
-  const lampAchieved = (lamp: number, threshold: number): boolean => lamp >= threshold;
   const diffValueKey = { easy: 'ec_diff', hard: 'hc_diff', exhard: 'exh_diff' };
 
   const filteredSongs = useMemo(() => songs.filter(song => {
     const key = `${song.id}_${song.difficulty}`;
     const lamp = clearData[key] ?? 0;
+    const konami = konamiInfInfo[song.id] || {};
     const chart = chartInfo[song.id] || {};
-    const unlocked = userUnlockStatus(song.id, song.difficulty);
+    const unlocked = unlockedData[key] ?? false;
+    const version = songInfo[song.id]?.version;
+    const label = konamiInfInfo[song.id]?.label;
 
-    if (filters.cleartype && filters.cleartype.length > 0 && !filters.cleartype.includes(lamp)) return false;
-    if (filters.unlocked !== undefined && filters.unlocked !== unlocked) return false;
-    if (filters.releaseType) {
-      if (filters.releaseType === 'ac' && !chart?.in_ac) return false;
-      if (filters.releaseType === 'inf' && !chart?.in_inf) return false;
-      if (filters.releaseType === 'both' && (!chart?.in_ac || !chart?.in_inf)) return false;
-    }
-    if (filters.version?.length && !filters.version.includes(versionMap[song.id]?.version)) return false;
-    if (filters.label?.length && !filters.label.includes(labelMap[song.id])) return false;
-
-    return true;
-  }), [songs, clearData, chartInfo, filters, versionMap, labelMap]);
+    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
+  }), [songs, clearData, chartInfo, filters, songInfo, konamiInfInfo]);
 
 /*
+リコメンド計算がどうにもerter.netと離れてしまうので一旦廃止
   useEffect(() => {
     let isCancelled = false;
     const targets: { b: number; success: boolean }[] = [];
@@ -155,13 +123,9 @@ const EreterPage = () => {
 */
 
   const totalCount = filteredSongs.length;
-  const stats = {
-    easy: filteredSongs.filter(s => lampAchieved(clearData[`${s.id}_${s.difficulty}`] ?? 0, 3)).length,
-    clear: filteredSongs.filter(s => lampAchieved(clearData[`${s.id}_${s.difficulty}`] ?? 0, 4)).length,
-    hard: filteredSongs.filter(s => lampAchieved(clearData[`${s.id}_${s.difficulty}`] ?? 0, 5)).length,
-    exhard: filteredSongs.filter(s => lampAchieved(clearData[`${s.id}_${s.difficulty}`] ?? 0, 6)).length,
-    fullcombo: filteredSongs.filter(s => lampAchieved(clearData[`${s.id}_${s.difficulty}`] ?? 0, 7)).length
-  };
+  const stats = useMemo(() => {
+    return getLampAchiveCount(filteredSongs, clearData);
+  }, [filteredSongs, clearData]);
 
   const groupedSongs: { [key: string]: any[] } = {};
   filteredSongs.forEach(song => {
@@ -179,7 +143,7 @@ const EreterPage = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Typography variant="h4" gutterBottom>DP Ereter 難易度表</Typography>
+      <Typography variant="h4" gutterBottom>ereter's dp laboratory</Typography>
 
       {/* 
       リコメンド計算がどうにもerter.netと離れてしまうので一旦廃止
@@ -202,24 +166,14 @@ const EreterPage = () => {
       )}
       */}
 
-      <Box sx={{ my: 2 }}>
-        {(['easy', 'clear', 'hard', 'exhard', 'fullcombo'] as const).map(key => (
-          <Box key={key} sx={{ mb: 1 }}>
-            <Typography variant="body1">
-              {key.toUpperCase()}達成率: {totalCount > 0 ? ((stats[key] / totalCount) * 100).toFixed(1) : '0.0'}% ({stats[key]}/{totalCount})
-            </Typography>
-            <LinearProgress variant="determinate" value={totalCount > 0 ? (stats[key] / totalCount) * 100 : 0} sx={{ backgroundColor: '#eee', '& .MuiLinearProgress-bar': { backgroundColor: colorMap[{ easy: 3, clear: 4, hard: 5, exhard: 6, fullcombo: 7 }[key]] } }} />
-          </Box>
-        ))}
-      </Box>
+      <LampAchieveProgress stats={stats} totalCount={totalCount} />
+      <FilterPanel filters={filters} onChange={setFilters} />
 
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 2 }}>
         <Tab label="EASY CLEAR難易度" value="easy" />
         <Tab label="HARD CLEAR難易度" value="hard" />
         <Tab label="EX HARD CLEAR難易度" value="exhard" />
       </Tabs>
-
-      <FilterPanel filters={filters} onChange={setFilters} />
 
       {sortedSections.map(section => (
         <Box key={section} sx={{ mb: 4 }}>
@@ -231,7 +185,7 @@ const EreterPage = () => {
               .map(song => {
                 const key = `${song.id}_${song.difficulty}`;
                 const lamp = clearData[key] ?? 0;
-                const bg = colorMap[lamp];
+                const bg = clearColorMap[lamp];
                 const title = titleMap[song.id] || song.id;
                 const diffLabel = song.difficulty === 'A' ? '[A]' : song.difficulty === 'H' ? '[H]' : song.difficulty === 'L' ? '[L]' : '';
                 const detailedDiff = song[diffValueKey[activeTab]];
@@ -245,7 +199,7 @@ const EreterPage = () => {
                         ★{detailedDiff.toFixed(1)}
                       </Typography>
                       <Typography variant="caption" display="block">
-                        MISS: {missData[key] == null || missData[key] === 99999 ? '-' : missData[key]}
+                        MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
                       </Typography>
                     </Paper>
                   </Grid>

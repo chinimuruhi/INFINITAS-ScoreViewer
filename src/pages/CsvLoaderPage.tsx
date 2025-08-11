@@ -4,7 +4,7 @@ import {
   SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { parseOfficialCsv, parseTsv, parseIDCCsv, mergeWithCSVEntries } from '../utils/storageUtils';
+import { parseOfficialCsv, parseRefluxTsv, parseIDCCsv, mergeWithCSVEntries } from '../utils/scoreDataUtils';
 import { getCurrentFormattedDate } from '../utils/dateUtils';
 import { useAppContext } from '../context/AppContext';
 import LinkComponent from '../components/LinkComponent'; 
@@ -23,7 +23,7 @@ const CsvLoaderPage = () => {
 
   // 保存されているDJNameを取得
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}') || {};
     if (storedUser.djname) {
       setDjName(storedUser.djname);
       setIsDjNameEmpty(false);
@@ -62,7 +62,7 @@ const CsvLoaderPage = () => {
         if (!text.includes('Type') || !text.includes('Label')) {
           throw new Error('Reflux TSVとして認識できません');
         }
-        result = await parseTsv(text);
+        result = await parseRefluxTsv(text);
         isReflux = true;
       }
 
@@ -182,7 +182,7 @@ const CsvLoaderPage = () => {
               beatmania IIDXの公式HP(<LinkComponent url="https://p.eagate.573.jp/game/2dx/">https://p.eagate.573.jp/game/2dx/</LinkComponent>)からダウンロードできるスコアデータCSVです。
             </Typography>
             <Typography variant="body2" sx={{ mb: 2 }}>
-              文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+              文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。CSVのダウンロードにはbeatmania IIDX プレミアムコース登録が必要となります。
             </Typography>
             <Alert severity="warning">
               CPI（<LinkComponent url="https://cpi.makecir.com/">https://cpi.makecir.com/</LinkComponent>）やBPI（<LinkComponent url="https://bpi.poyashi.me/">https://bpi.poyashi.me/</LinkComponent>）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。

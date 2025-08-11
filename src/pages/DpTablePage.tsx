@@ -4,43 +4,40 @@ import {
 } from '@mui/material';
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
-import FilterPanel, { FilterState } from '../components/FilterPanel';
-
-const colorMap = {
-  0: '#FFFFFF', 1: '#CCCCCC', 2: '#FF66CC', 3: '#99FF99',
-  4: '#99CCFF', 5: '#FF6666', 6: '#FFFF99', 7: '#FF9966'
-};
-
-const difficultyIndexMap = { B: 0, N: 1, H: 2, A: 3, L: 4 };
+import FilterPanel from '../components/FilterPanel';
+import LampAchieveProgress from '../components/LampAchieveProgress';
+import { clearColorMap } from '../constants/colorConstrains';
+import { difficultyKey } from '../constants/difficultyConstrains';
+import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
+import { isMatchSong } from '../utils/filterUtils';
+import { defaultMisscount } from '../constants/defaultValues';
+import { getLampAchiveCount } from '../utils/lampUtils';
 
 const DpTablePage = () => {
-  const { mode } = useAppContext();
+  const { mode, filters, setFilters } = useAppContext();
   const [songList, setSongList] = useState<any[]>([]);
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [chartInfo, setChartInfo] = useState<Record<string, any>>({});
   const [songInfo, setSongInfo] = useState<Record<string, any>>({});
-  const [labelMap, setLabelMap] = useState<Record<string, any>>({});
+  const [konamiInfInfo, setKonamiInfInfo] = useState<Record<string, any>>({});
   const [clearData, setClearData] = useState<Record<string, number>>({});
   const [missData, setMissData] = useState<Record<string, number>>({});
+  const [unlockedData, setUnlockedData] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const [activeRange, setActiveRange] = useState<number>(12);
   const [tabRanges, setTabRanges] = useState<number[]>([]);
-  const [filters, setFilters] = useState<FilterState>({});
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [songsRes, titleRes, chartResBuffer, songInfoBuffer, labelMapRes] = await Promise.all([
+        const [songsRes, titleRes, chartInfoRes, songInfoRes, konamiInfInfoRes] = await Promise.all([
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/dp/songs_dict.json').then(res => res.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then(res => res.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(res => res.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/song-info.json.gz').then(res => res.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then(res => res.json())
         ]);
-
-        const chartRes = JSON.parse(new TextDecoder().decode(ungzip(chartResBuffer)));
-        const songInfoRes = JSON.parse(new TextDecoder().decode(ungzip(songInfoBuffer)));
 
         const expandedSongs: any[] = [];
         const rangeSet = new Set<number>();
@@ -55,23 +52,16 @@ const DpTablePage = () => {
         expandedSongs.sort((a, b) => b.value - a.value);
 
         const local = JSON.parse(localStorage.getItem('data') || '{}');
-        const user = local[mode] || {};
-        const clear: Record<string, number> = {};
-        const miss: Record<string, number> = {};
-        for (const id in user) {
-          for (const diff in user[id]) {
-            clear[`${id}_${diff}`] = user[id][diff].cleartype;
-            miss[`${id}_${diff}`] = user[id][diff].misscount;
-          }
-        }
+        const { clear, misscount, unlocked } = convertDataToIdDiffKey(local, mode);
 
         setSongList(expandedSongs);
         setTitleMap(titleRes);
-        setChartInfo(chartRes);
-        setSongInfo(songInfoRes);
-        setLabelMap(labelMapRes);
+        setChartInfo(JSON.parse(new TextDecoder().decode(ungzip(chartInfoRes))));
+        setSongInfo(JSON.parse(new TextDecoder().decode(ungzip(songInfoRes))));
+        setKonamiInfInfo(konamiInfInfoRes);
         setClearData(clear);
-        setMissData(miss);
+        setMissData(misscount);
+        setUnlockedData(unlocked);
         setTabRanges([...rangeSet].sort((a, b) => a - b));
       } finally {
         setLoading(false);
@@ -80,28 +70,18 @@ const DpTablePage = () => {
     fetchData();
   }, []);
 
-  const filteredSongs = useMemo(() => songList.filter(s => {
-    if (s.value < activeRange || s.value >= activeRange + 1) return false;
-    const key = `${s.id}_${s.difficulty}`;
+  const filteredSongs = useMemo(() => songList.filter(song => {
+    if (song.value < activeRange || song.value >= activeRange + 1) return false;
+    const key = `${song.id}_${song.difficulty}`;
     const lamp = clearData[key] ?? 0;
-    const unlocked = (localStorage.getItem('data') && JSON.parse(localStorage.getItem('data') || '{}')?.[mode]?.[s.id]?.[s.difficulty]?.unlocked) ?? false;
+    const konami = konamiInfInfo[song.id] || {};
+    const chart = chartInfo[song.id] || {};
+    const unlocked = unlockedData[key] ?? false;
+    const version = songInfo[song.id]?.version;
+    const label = konamiInfInfo[song.id]?.label;
 
-    if (filters.cleartype && filters.cleartype.length > 0 && !filters.cleartype.includes(lamp)) return false;
-    if (filters.unlocked !== undefined && filters.unlocked !== unlocked) return false;
-    const chart = chartInfo[s.id];
-    if (filters.releaseType === 'ac' && !chart?.in_ac) return false;
-    if (filters.releaseType === 'inf' && !chart?.in_inf) return false;
-    if (filters.releaseType === 'both' && (!chart?.in_ac || !chart?.in_inf)) return false;
-    if (filters.version && filters.version.length > 0) {
-      const version = songInfo[s.id]?.version;
-      if (!filters.version.includes(version)) return false;
-    }
-    if (filters.label && filters.label.length > 0) {
-      const label = labelMap[s.id]?.label;
-      if (!filters.label.includes(label)) return false;
-    }
-    return true;
-  }), [songList, filters, activeRange, clearData, chartInfo, songInfo, labelMap]);
+    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
+  }), [songList, filters, activeRange, clearData, chartInfo, songInfo, konamiInfInfo]);
 
   const groupedByDecimal = useMemo(() => {
     const group: Record<string, any[]> = {};
@@ -115,13 +95,9 @@ const DpTablePage = () => {
   const sortedDecimals = useMemo(() => Object.keys(groupedByDecimal).sort((a, b) => Number(b) - Number(a)), [groupedByDecimal]);
 
   const totalCount = filteredSongs.length;
-  const stats = {
-    easy: filteredSongs.filter(s => (clearData[`${s.id}_${s.difficulty}`] ?? 0) >= 3).length,
-    clear: filteredSongs.filter(s => (clearData[`${s.id}_${s.difficulty}`] ?? 0) >= 4).length,
-    hard: filteredSongs.filter(s => (clearData[`${s.id}_${s.difficulty}`] ?? 0) >= 5).length,
-    exhard: filteredSongs.filter(s => (clearData[`${s.id}_${s.difficulty}`] ?? 0) >= 6).length,
-    fullcombo: filteredSongs.filter(s => (clearData[`${s.id}_${s.difficulty}`] ?? 0) >= 7).length
-  };
+  const stats = useMemo(() => {
+    return getLampAchiveCount(filteredSongs, clearData);
+  }, [filteredSongs, clearData]);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
@@ -129,19 +105,9 @@ const DpTablePage = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Typography variant="h4" gutterBottom>DP 難易度表</Typography>
+      <Typography variant="h4" gutterBottom>DP非公式難易度表</Typography>
 
-      <Box sx={{ my: 2 }}>
-        {(['easy', 'clear', 'hard', 'exhard', 'fullcombo'] as const).map(key => (
-          <Box key={key} sx={{ mb: 1 }}>
-            <Typography variant="body1">
-              {key.toUpperCase()}達成率: {totalCount > 0 ? ((stats[key] / totalCount) * 100).toFixed(1) : '0.0'}% ({stats[key]}/{totalCount})
-            </Typography>
-            <LinearProgress variant="determinate" value={totalCount > 0 ? (stats[key] / totalCount) * 100 : 0} sx={{ backgroundColor: '#eee', '& .MuiLinearProgress-bar': { backgroundColor: colorMap[{ easy: 3, clear: 4, hard: 5, exhard: 6, fullcombo: 7 }[key]] } }} />
-          </Box>
-        ))}
-      </Box>
-
+      <LampAchieveProgress stats={stats} totalCount={totalCount} />
       <FilterPanel filters={filters} onChange={setFilters} />
 
       <Tabs value={activeRange} onChange={(_, v) => setActiveRange(v)} sx={{ mb: 3 }}>
@@ -157,11 +123,11 @@ const DpTablePage = () => {
             {groupedByDecimal[dec].map(song => {
               const key = `${song.id}_${song.difficulty}`;
               const lamp = clearData[key] ?? 0;
-              const bg = colorMap[lamp];
+              const bg = clearColorMap[lamp];
               const title = titleMap[song.id] || song.id;
               const diffLabel = `[${song.difficulty}]`;
               const detailLink = `https://zasa.sakura.ne.jp/dp/music.php?id=${song.snj_id}`;
-              const index = difficultyIndexMap[song.difficulty];
+              const index = difficultyKey.indexOf(song.difficulty);
               const officialLevel = chartInfo[song.id]?.level?.dp?.[index];
 
               return (
@@ -176,7 +142,7 @@ const DpTablePage = () => {
                       難易度: {officialLevel != null && officialLevel > 0 ? `☆${officialLevel} (${song.value.toFixed(1)})` : `(${song.value.toFixed(1)})`}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      MISS: {missData[key] == null || missData[key] === 99999 ? '-' : missData[key]}
+                      MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
                     </Typography>
                   </Paper>
                 </Grid>

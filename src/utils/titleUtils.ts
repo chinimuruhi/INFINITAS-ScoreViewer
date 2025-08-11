@@ -1,4 +1,4 @@
-import { replaceMap } from '../constants/replace-characters'
+import { replaceMap } from '../constants/replaceCharacters'
 
 async function fetchReplaceMap(): Promise<Record<string, string>> {
   const res = await fetch('https://chinimuruhi.github.io/IIDX-Data-Table/manual/replace-characters.json');
@@ -14,14 +14,14 @@ export async function fetchNormalizedTitleMap(): Promise<Record<string, string>>
 
 const remoteReplaceMap = await fetchReplaceMap();
 
-export function normalizeTitle(title: string): string {
+export const normalizeTitle = (title: string): string => {
   for (const [from, to] of remoteReplaceMap['title']) {
-    while(title.includes(from)) {
+    while (title.includes(from)) {
       title = title.replace(from, to);
     }
   }
-  for (const { from, to } of replaceMap){
-    while(title.includes(from)) {
+  for (const { from, to } of replaceMap) {
+    while (title.includes(from)) {
       title = title.replace(from, to);
     }
   }
@@ -31,3 +31,15 @@ export function normalizeTitle(title: string): string {
     return code > 127 ? '\\u' + code.toString(16).padStart(4, '0') : char;
   }).join('');
 }
+
+export const generateSearchText = (text: string) => {
+  text = text.replace(/[Ａ-Ｚａ-ｚ０-９ａ-ｚＡ-Ｚ]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+  );
+
+  text = text.replace(/[ぁ-ん]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) + 0x60)
+  );
+  
+  return text.toLowerCase();
+};

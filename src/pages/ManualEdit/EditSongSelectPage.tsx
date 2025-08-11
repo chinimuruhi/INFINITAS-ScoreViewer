@@ -1,31 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ungzip } from 'pako';
 import { useAppContext } from '../../context/AppContext';
+import { generateSearchText } from '../../utils/titleUtils';
+import { difficultyKey } from '../../constants/difficultyConstrains';
 
-const difficultyIndexMap = { B: 0, N: 1, H: 2, A: 3, L: 4 };
-
-const normalizeText = (text: string) => {
-  text = text.replace(/[Ａ-Ｚａ-ｚ０-９ａ-ｚＡ-Ｚ]/g, (s) =>
-    String.fromCharCode(s.charCodeAt(0) - 0xfee0)
-  );
-
-  text = text.replace(/[ぁ-ん]/g, (s) =>
-    String.fromCharCode(s.charCodeAt(0) + 0x60)
-  );
-  
-  return text.toLowerCase();
-};
 
 const EditSongSelectPage = () => {
-  const { mode, setMode } = useAppContext();
+  const { mode } = useAppContext();
   const navigate = useNavigate();
   const [songs, setSongs] = useState<any[]>([]);
   const [filteredSongs, setFilteredSongs] = useState<any[]>([]);
   const [songSearch, setSongSearch] = useState<string>('');
   const [selectedLevel, setSelectedLevel] = useState<number>(12);
-  const [selectedSong, setSelectedSong] = useState<string>('');
   const [openResetDialog, setOpenResetDialog] = useState(false);
 
   useEffect(() => {
@@ -40,23 +28,23 @@ const EditSongSelectPage = () => {
 
         const songList = [];
 
-        for(const id of Object.keys(titles)){
-          for(const difficulty of Object.keys(difficultyIndexMap)){
-            const diffNumber = difficultyIndexMap[difficulty as keyof typeof difficultyIndexMap];
+        for (const id of Object.keys(titles)) {
+          for (const difficulty of difficultyKey) {
+            const diffNumber = difficultyKey.indexOf(difficulty);
             const key = `${id}_${diffNumber}`;
-            if(chartJson[id]['level'][mode.toLowerCase()][diffNumber] === 0) continue;
-            if(!chartJson[id]['in_ac'] && !chartJson[id]['in_inf']) continue;
+            if (chartJson[id]['level'][mode.toLowerCase()][diffNumber] === 0) continue;
+            if (!chartJson[id]['in_ac'] && !chartJson[id]['in_inf']) continue;
             songList.push({
               key, id, diffNumber, difficulty,
               title: titles[id],
-              normalizeTitle: normalizeText(titles[id]),
+              normalizeTitle: generateSearchText(titles[id]),
               level: chartJson[id]['level'][mode.toLowerCase()][diffNumber]
             })
           }
         }
 
         setSongs(songList);
-        setFilteredSongs(songList); // 初期は全ての曲を表示
+        setFilteredSongs(songList);
       } catch (err) {
         console.error('Error loading song data:', err);
       }
@@ -66,10 +54,9 @@ const EditSongSelectPage = () => {
   }, []);
 
   useEffect(() => {
-    // 曲名検索に基づいて曲リストをフィルタリング
     setFilteredSongs(
-      songs.filter(song => 
-        (songSearch === '' || song.normalizeTitle.includes(normalizeText(songSearch)))
+      songs.filter(song =>
+        (songSearch === '' || song.normalizeTitle.includes(generateSearchText(songSearch)))
         && song.level === selectedLevel
       ).sort((a, b) => a.title.localeCompare(b.title))
     );
@@ -103,7 +90,7 @@ const EditSongSelectPage = () => {
       </Typography>
 
       <Box sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={handleResetClick}>
+        <Button variant="contained" onClick={handleResetClick} sx={{ mb: 2 }}>
           更新差分クリア
         </Button>
         <Typography variant="body2">
@@ -151,13 +138,12 @@ const EditSongSelectPage = () => {
                 onClick={() => handleSelectSong(song.id, song.diffNumber)}
                 style={{
                   cursor: 'pointer',
-                  transition: 'background-color 0.3s', // スムーズなホバーエフェクト
+                  transition: 'background-color 0.3s',
                 }}
                 sx={{
                   '&:hover': {
-                    backgroundColor: '#f0f0f0', // ホバー時の背景色
+                    backgroundColor: '#f0f0f0',
                   },
-                  backgroundColor: selectedSong === song.id ? '#e0e0e0' : '', // 選択された行の背景色
                 }}
               >
                 <TableCell>{song.title} [{song.difficulty}]</TableCell>

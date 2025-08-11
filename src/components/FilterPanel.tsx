@@ -4,14 +4,8 @@ import {
   Collapse, Button, IconButton, Typography
 } from '@mui/material';
 import { FilterList, FilterListOff } from '@mui/icons-material';
-
-export type FilterState = {
-  cleartype?: number[];
-  unlocked?: boolean;
-  releaseType?: 'ac' | 'inf' | 'both';
-  version?: number[];
-  label?: number[];
-};
+import { FilterState } from '../types/Types';
+import { simpleClearName } from '../constants/clearConstrains';
 
 type Props = {
   filters: FilterState;
@@ -63,17 +57,17 @@ const FilterPanel = ({ filters, onChange }: Props) => {
 
       <Collapse in={open}>
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="cleartype-label">クリアタイプ</InputLabel>
+          <InputLabel id="cleartype-label">クリアランプ</InputLabel>
           <Select
             labelId="cleartype-label"
             multiple
-            value={pendingFilters.cleartype || []}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, cleartype: e.target.value })}
-            renderValue={(selected) => selected.map((v: number) => ['NO PLAY', 'FAILED', 'ASSIST', 'EASY', 'CLEAR', 'HARD', 'EXHARD', 'FULLCOMBO'][v]).join(', ')}
+            value={pendingFilters?.cleartype || []}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, cleartype: e.target.value as number[] })}
+            renderValue={(selected) => selected.map((v: number) => simpleClearName[v]).join(', ')}
           >
-            {['NO PLAY', 'FAILED', 'ASSIST', 'EASY', 'CLEAR', 'HARD', 'EXHARD', 'FULLCOMBO'].map((label, index) => (
+            {simpleClearName.map((label, index) => (
               <MenuItem key={index} value={index}>
-                <Checkbox checked={pendingFilters.cleartype?.includes(index) || false} />
+                <Checkbox checked={pendingFilters?.cleartype?.includes(index) || false} />
                 <ListItemText primary={label} />
               </MenuItem>
             ))}
@@ -84,7 +78,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
           <InputLabel id="unlock-label">INFINITAS解禁状況（Reflux）</InputLabel>
           <Select
             labelId="unlock-label"
-            value={pendingFilters.unlocked ?? ''}
+            value={pendingFilters?.unlocked ?? ''}
             onChange={(e) => setPendingFilters({ ...pendingFilters, unlocked: e.target.value === '' ? undefined : e.target.value === 'true' })}
           >
             <MenuItem value="">すべて</MenuItem>
@@ -94,16 +88,17 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="release-type-label">AC/INFINITAS収録</InputLabel>
+          <InputLabel id="release-type-label">AC/INFINITAS収録状況</InputLabel>
           <Select
             labelId="release-type-label"
-            value={pendingFilters.releaseType || ''}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, releaseType: e.target.value || undefined })}
+            value={pendingFilters?.releaseType || ''}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, releaseType: e.target.value as FilterState['releaseType'] || undefined })}
           >
             <MenuItem value="">すべて</MenuItem>
-            <MenuItem value="ac">AC収録のみ</MenuItem>
-            <MenuItem value="inf">INFINITAS収録のみ</MenuItem>
-            <MenuItem value="both">AC収録&INFINITAS収録</MenuItem>
+            <MenuItem value="ac">AC収録</MenuItem>
+            <MenuItem value="inf">INFINITAS収録</MenuItem>
+            <MenuItem value="ac_only">ACのみ収録</MenuItem>
+            <MenuItem value="inf_only">INFINITASのみ収録</MenuItem>
           </Select>
         </FormControl>
 
@@ -112,13 +107,13 @@ const FilterPanel = ({ filters, onChange }: Props) => {
           <Select
             labelId="version-label"
             multiple
-            value={pendingFilters.version || []}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, version: e.target.value })}
+            value={pendingFilters?.version || []}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, version: e.target.value as number[] })}
             renderValue={(selected) => selected.map((v) => versionLabels[v] || v).join(', ')}
           >
             {Object.keys(versionLabels).sort((a, b) => parseInt(a) - parseInt(b)).map((key) => (
               <MenuItem key={key} value={parseInt(key)}>
-                <Checkbox checked={pendingFilters.version?.includes(parseInt(key)) || false} />
+                <Checkbox checked={pendingFilters?.version?.includes(parseInt(key)) || false} />
                 <ListItemText primary={versionLabels[parseInt(key)]} />
               </MenuItem>
             ))}
@@ -126,17 +121,17 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="label-label">ラベル</InputLabel>
+          <InputLabel id="label-label">楽曲パック</InputLabel>
           <Select
             labelId="label-label"
             multiple
-            value={pendingFilters.label || []}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, label: e.target.value })}
+            value={pendingFilters?.label || []}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, label: e.target.value as number[] })}
             renderValue={(selected) => selected.map((v) => labelMap[v] || v).join(', ')}
           >
             {Object.keys(labelMap).sort((a, b) => parseInt(a) - parseInt(b)).map((key) => (
               <MenuItem key={key} value={parseInt(key)}>
-                <Checkbox checked={pendingFilters.label?.includes(parseInt(key)) || false} />
+                <Checkbox checked={pendingFilters?.label?.includes(parseInt(key)) || false} />
                 <ListItemText primary={labelMap[parseInt(key)]} />
               </MenuItem>
             ))}

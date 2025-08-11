@@ -1,86 +1,31 @@
-import { normalizeTitle, fetchNormalizedTitleMap} from './titleUtils';
-import { ScoreEntry, DiffEntry, TimestampEntry } from '../types/strage';
+import { normalizeTitle, fetchNormalizedTitleMap } from './titleUtils';
 import { parse as parseCSV } from 'papaparse';
-import { UnfoldLessOutlined } from '@mui/icons-material';
 import { convertDateToTimeString, getCurrentFormattedTime } from './dateUtils'
+import { clearMapIDC, clearMapOfficial, clearMapReflux } from '../constants/clearConstrains';
+import { difficultyDetailKeys, difficultyKey } from '../constants/difficultyConstrains';
+import { defaultLastPlay, defaultMisscount } from '../constants/defaultValues';
 
-type CSVEntry = {
-  title: string;
-  difficulty: string;
-  score: number;
-  misscount: number;
-  cleartype: number;
-  unlocked: boolean;
-  lastplay: string;
-};
-
-type ParsedData = {
-  [mode: string]: {
-    [title: string]: {
-      [difficulty: string]: CSVEntry;
-    };
-  };
-};
-
-const clearMapOfficial: Record<string, number> = {
-  "NO PLAY": 0,
-  "FAILED": 1,
-  "ASSIST CLEAR": 2,
-  "EASY CLEAR": 3,
-  "CLEAR": 4,
-  "HARD CLEAR": 5,
-  "EX HARD CLEAR": 6,
-  "FULLCOMBO CLEAR": 7
-};
-
-const clearMapIDC: Record<string, number> = {
-  "NO PLAY": 0,
-  "FAILED": 1,
-  "A-CLEAR": 2,
-  "E-CLEAR": 3,
-  "CLEAR": 4,
-  "H-CLEAR": 5,
-  "EXH-CLEAR": 6,
-  "F-COMBO": 7
-};
-
-const clearMapReflux: Record<string, number> = {
-  "NP": 0,
-  "F": 1,
-  "AC": 2,
-  "EC": 3,
-  "NC": 4,
-  "HC": 5,
-  "EX": 6,
-  "FC": 7
-};
-
-const levelKeys = ["BEGINNER", "NORMAL", "HYPER", "ANOTHER", "LEGGENDARIA"];
-const levelAbbr = ["B", "N", "H", "A", "L"];
-
-const defaultMisscount = 99999
-const defaultLastPlay = "1970-01-01 00:00"
-
-export async function parseOfficialCsv(text: string, mode: 'SP' | 'DP'): Promise<ParsedData> {
+// 公式CSVのパース
+export async function parseOfficialCsv(text: string, mode: 'SP' | 'DP'): Promise<any> {
   const rows = parseCSV(text, { header: true }).data as any[];
-  const data: ParsedData = {};
+  const data: any = {};
 
   rows.forEach(row => {
     const title = row['タイトル'];
     if (!title) return;
     const lastplay = row['最終プレー日時'];
 
-    for (let i = 0; i < levelKeys.length; i++) {
-      const key = levelKeys[i];
+    for (let i = 0; i < difficultyDetailKeys.length; i++) {
+      const key = difficultyDetailKeys[i];
       const score = parseInt(row[`${key} スコア`] || '0');
       const miss = row[`${key} ミスカウント`] ? parseInt(row[`${key} ミスカウント`]) : defaultMisscount;
       const clear = clearMapOfficial[(row[`${key} クリアタイプ`] || '').trim()] ?? 0;
       if (clear != 0) {
         if (!data[mode]) data[mode] = {};
         if (!data[mode][title]) data[mode][title] = {};
-        data[mode][title][levelAbbr[i]] = {
+        data[mode][title][difficultyKey[i]] = {
           title,
-          difficulty: levelAbbr[i],
+          difficulty: difficultyKey[i],
           score: isNaN(score) ? 0 : score,
           misscount: isNaN(miss) ? defaultMisscount : miss,
           cleartype: clear,
@@ -94,18 +39,19 @@ export async function parseOfficialCsv(text: string, mode: 'SP' | 'DP'): Promise
   return data;
 }
 
-export async function parseIDCCsv(text: string): Promise<ParsedData> {
+// INFINITAS打鍵カウンタCSVのパース
+export async function parseIDCCsv(text: string): Promise<any> {
   const rows = parseCSV(text, { header: true }).data as any[];
-  const data: ParsedData = {};
+  const data: any = {};
 
   rows.forEach(row => {
     const title = row['Title'];
     if (!title) return;
-    const mode = row['mode'].slice(0,2);
-    const diff = row['mode'].slice(2,3);
+    const mode = row['mode'].slice(0, 2);
+    const diff = row['mode'].slice(2, 3);
     const score = parseInt(row['Score'] || '0');
     const clear = clearMapIDC[(row['Lamp'] || '').trim()] ?? 0;
-    const miss = row['BP'] ? parseInt(row['BP']): defaultMisscount;
+    const miss = row['BP'] ? parseInt(row['BP']) : defaultMisscount;
     const lastplay = convertDateToTimeString(row['Last Played']);
 
     if (clear != 0) {
@@ -126,10 +72,11 @@ export async function parseIDCCsv(text: string): Promise<ParsedData> {
   return data;
 }
 
-export async function parseTsv(text: string): Promise<ParsedData> {
+// Reflux TSVのパース
+export async function parseRefluxTsv(text: string): Promise<any> {
   const rows = text.split('\n').map(line => line.split('\t'));
   const headers = rows[0];
-  const data: ParsedData = {};
+  const data: any = {};
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -140,8 +87,8 @@ export async function parseTsv(text: string): Promise<ParsedData> {
     if (!title) continue;
 
     for (const mode of ['SP', 'DP']) {
-      for (let i = 0; i < levelAbbr.length; i++) {
-        const diff = levelAbbr[i];
+      for (let i = 0; i < difficultyKey.length; i++) {
+        const diff = difficultyKey[i];
         const prefix = mode + diff;
         const score = parseInt(rowObj[`${prefix} EX Score`] || '0');
         const miss = rowObj[`${prefix} Miss Count`] ? parseInt(rowObj[`${prefix} Miss Count`]) : defaultMisscount;
@@ -170,11 +117,11 @@ export async function parseTsv(text: string): Promise<ParsedData> {
 
 // 曲毎のマージ処理
 const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, lastplay: string) => {
-  let updated: { [key: string]: any }  = {};
-  let diff: { [key: string]: any }  = {};
-  let timestamp: { [key: string]: any }  = {};
+  let updated: { [key: string]: any } = {};
+  let diff: { [key: string]: any } = {};
+  let timestamp: { [key: string]: any } = {};
 
-  if(Object.keys(oldData).length > 0 && Object.keys(oldTS).length > 0){
+  if (Object.keys(oldData).length > 0 && Object.keys(oldTS).length > 0) {
     // 既プレイ楽曲
     updated = {
       score: oldData.score,
@@ -188,7 +135,7 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
       cleartypeupdated: oldTS.cleartypeupdated,
       misscountupdated: oldTS.misscountupdated
     }
-    if(entry.score > oldData.score){
+    if (entry.score > oldData.score) {
       updated['score'] = entry.score;
       diff['score'] = {
         old: oldData.score,
@@ -196,7 +143,7 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
       };
       timestamp['scoreupdated'] = lastplay;
     }
-    if(entry.cleartype > oldData.cleartype){
+    if (entry.cleartype > oldData.cleartype) {
       updated['cleartype'] = entry.cleartype;
       diff['cleartype'] = {
         old: oldData.cleartype,
@@ -204,7 +151,7 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
       };
       timestamp['cleartypeupdated'] = lastplay;
     }
-    if(entry.misscount < oldData.misscount){
+    if (entry.misscount < oldData.misscount) {
       updated['misscount'] = entry.misscount;
       diff['misscount'] = {
         old: oldData.misscount,
@@ -212,7 +159,7 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
       };
       timestamp['misscountupdated'] = lastplay;
     }
-  }else{
+  } else {
     //初プレイ楽曲
     updated = {
       score: entry.score,
@@ -221,9 +168,9 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
       unlocked: entry.unlocked
     };
     let fixedLastPlay = lastplay;
-    if(entry.score === 0 && entry.cleartype === 0 && entry.misscount === defaultMisscount){
+    if (entry.score === 0 && entry.cleartype === 0 && entry.misscount === defaultMisscount) {
       fixedLastPlay = defaultLastPlay;
-    }else{
+    } else {
       diff = {
         score: {
           old: 0,
@@ -250,7 +197,7 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
 }
 
 // CSV読み込み時のLocalStrageデータとのマージ処理
-export async function mergeWithCSVEntries(parsed: ParsedData, isReflux: boolean) {
+export async function mergeWithCSVEntries(parsed: any, isReflux: boolean) {
   const idMap = await fetchNormalizedTitleMap();
 
   const existingDataRaw = localStorage.getItem('data') || '{}';
@@ -260,9 +207,9 @@ export async function mergeWithCSVEntries(parsed: ParsedData, isReflux: boolean)
   const diffs: any = {};
   const failedTitles: string[] = [];
   const mergedData = { ...existingData };
-  const mergedTS = { ...existingTS};
+  const mergedTS = { ...existingTS };
 
-  for(const mode in parsed){ 
+  for (const mode in parsed) {
     for (const rawTitle in parsed[mode]) {
       const normTitle = normalizeTitle(rawTitle);
       const songId = idMap[normTitle];
@@ -285,14 +232,14 @@ export async function mergeWithCSVEntries(parsed: ParsedData, isReflux: boolean)
         const lastplay = entry.lastplay ? entry.lastplay : getCurrentFormattedTime();
 
         const merged = mergeScore(entry, oldData, oldTS, isReflux, lastplay);
-        
+
         // 登録共通処理
         mergedData[mode][songId][entry.difficulty] = merged.updated;
-        if(entry.score !== 0 || entry.cleartype !== 0 || entry.misscount !== defaultMisscount){
+        if (entry.score !== 0 || entry.cleartype !== 0 || entry.misscount !== defaultMisscount) {
           if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
           mergedTS[mode][songId][entry.difficulty] = merged.timestamp;
         }
-        if(Object.keys(merged.diff).length > 0){
+        if (Object.keys(merged.diff).length > 0) {
           if (!diffs[mode]) diffs[mode] = {};
           if (!diffs[mode][songId]) diffs[mode][songId] = {};
           diffs[mode][songId][entry.difficulty] = merged.diff;
@@ -316,7 +263,7 @@ export function mergeWithJSONData(data: any, timestamps: any, isReflux: boolean)
   const mergedTS = { ...existingTS };
   const mergedDiff = { ...existingDiff };
 
-  for(const mode in data){ 
+  for (const mode in data) {
     for (const songId in data[mode]) {
 
       if (!mergedData[mode]) mergedData[mode] = {};
@@ -332,18 +279,18 @@ export function mergeWithJSONData(data: any, timestamps: any, isReflux: boolean)
         const lastplay = timestamps?.[mode]?.[songId]?.[difficulty]?.lastplay ? timestamps[mode][songId][difficulty].lastplay : getCurrentFormattedTime();
 
         const merged = mergeScore(entry, oldData, oldTS, isReflux, lastplay);
-        
+
         // 登録共通処理
         mergedData[mode][songId][difficulty] = merged.updated;
-        if(entry.score !== 0 || entry.cleartype !== 0 || entry.misscount !== defaultMisscount){
+        if (entry.score !== 0 || entry.cleartype !== 0 || entry.misscount !== defaultMisscount) {
           if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
           mergedTS[mode][songId][difficulty] = merged.timestamp;
         }
-        if(Object.keys(merged.diff).length > 0){
+        if (Object.keys(merged.diff).length > 0) {
           if (!mergedDiff[mode]) mergedDiff[mode] = {};
           if (!mergedDiff[mode][songId]) mergedDiff[mode][songId] = {};
           if (!mergedDiff[mode][songId][difficulty]) mergedDiff[mode][songId][difficulty] = {};
-          for(const diffType in merged.diff){
+          for (const diffType in merged.diff) {
             mergedDiff[mode][songId][difficulty][diffType] = merged.diff[diffType];
           }
         }
@@ -351,5 +298,24 @@ export function mergeWithJSONData(data: any, timestamps: any, isReflux: boolean)
     }
   }
 
-  return { data: mergedData, diffs: mergedDiff, timestamps: mergedTS};
+  return { data: mergedData, diffs: mergedDiff, timestamps: mergedTS };
+}
+
+
+// ${id}_${diff}形式のオブジェクトに変換
+export const convertDataToIdDiffKey = (data: any, mode: 'SP' | 'DP')=> {
+  const score: { [key: string]: number } = {};
+  const clear: { [key: string]: number } = {};
+  const misscount: { [key: string]: number } = {};
+  const unlocked: { [key: string]: boolean } = {};
+  for (const id in data[mode]) {
+    for (const diff in data[mode][id]) {
+      score[`${id}_${diff}`] = data[mode][id][diff].score;
+      clear[`${id}_${diff}`] = data[mode][id][diff].cleartype;
+      misscount[`${id}_${diff}`] = data[mode][id][diff].misscount;
+      unlocked[`${id}_${diff}`] = data[mode][id][diff].unlocked;
+    }
+  }
+
+  return { score, clear, misscount, unlocked }
 }

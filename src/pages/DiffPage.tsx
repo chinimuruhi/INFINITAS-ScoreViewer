@@ -15,72 +15,15 @@ import {
   StepIconClassKey,
   Button,
 } from '@mui/material';
-import { ungzip, gzip } from 'pako';
-import { base64UrlDecode, base64UrlEncode } from '../utils/base64Utils'
+import { ungzip } from 'pako';
+import { compressDiffData, decompressDiffData } from '../utils/encodeUtils'
 import { useAppContext } from '../context/AppContext';
+import { clearColorMap } from '../constants/colorConstrains';
+import { simpleClearName } from '../constants/clearConstrains';
+import { defaultMisscount } from '../constants/defaultValues';
+import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 
-const diffLabel: { [key: string]: string } = {
-  B: 'BEGINNER',
-  N: 'NORMAL',
-  H: 'HYPER',
-  A: 'ANOTHER',
-  L: 'LEGGENDARIA'
-};
-
-const clearTypeLabel: { [key: number]: string } = {
-  0: 'NO PLAY',
-  1: 'FAILED',
-  2: 'ASSIST CLEAR',
-  3: 'EASY CLEAR',
-  4: 'CLEAR',
-  5: 'HARD CLEAR',
-  6: 'EX HARD CLEAR',
-  7: 'FULLCOMBO CLEAR'
-};
-
-const clearTypeColor: { [key: number]: string } = {
-  0: '#FFFFFF',
-  1: '#CCCCCC',
-  2: '#FF66CC',
-  3: '#99FF99',
-  4: '#99CCFF',
-  5: '#FF6666',
-  6: '#FFFF99',
-  7: '#FF9966'
-};
-
-const getGrade = (percentage: number): string => {
-  if (percentage < 2 / 9) return 'F';
-  if (percentage < 1 / 3) return 'E';
-  if (percentage < 4 / 9) return 'D';
-  if (percentage < 5 / 9) return 'C';
-  if (percentage < 2 / 3) return 'B';
-  if (percentage < 7 / 9) return 'A';
-  if (percentage < 8 / 9) return 'AA';
-  return 'AAA';
-};
-
-const urlLengthMax = 12227;
-
-const getDetailGrade = (score: number, notes: number): string => {
-  const percentage = (score || 0) / (notes * 2);
-  if (percentage < 4 / 18) return 'E-' + (Math.ceil(notes * 4 / 9) - score).toString();
-  if (percentage < 5 / 18) return 'E+' + (score - Math.ceil(notes * 4 / 9)).toString();
-  if (percentage < 6 / 18) return 'D-' + (Math.ceil(notes * 6 / 9) - score).toString();
-  if (percentage < 7 / 18) return 'D+' + (score - Math.ceil(notes * 6 / 9)).toString();
-  if (percentage < 8 / 18) return 'C-' + (Math.ceil(notes * 8 / 9) - score).toString();
-  if (percentage < 9 / 18) return 'C+' + (score - Math.ceil(notes * 8 / 9)).toString();
-  if (percentage < 10 / 18) return 'B-' + (Math.ceil(notes * 10 / 9) - score).toString();
-  if (percentage < 11 / 18) return 'B+' + (score - Math.ceil(notes * 10 / 9)).toString();
-  if (percentage < 12 / 18) return 'A-' + (Math.ceil(notes * 12 / 9) - score).toString();
-  if (percentage < 13 / 18) return 'A+' + (score - Math.ceil(notes * 12 / 9)).toString();
-  if (percentage < 14 / 18) return 'AA-' + (Math.ceil(notes * 14 / 9) - score).toString();
-  if (percentage < 15 / 18) return 'AA+' + (score - Math.ceil(notes * 14 / 9)).toString();
-  if (percentage < 16 / 18) return 'AAA-' + (Math.ceil(notes * 16 / 9) - score).toString();
-  if (percentage < 17 / 18) return 'AAA+' + (score - Math.ceil(notes * 16 / 9)).toString();
-  if (percentage <= 1)return 'MAX-' + (notes * 2 - score).toString();
-  return 'invalidScore';
-};
+const urlLengthMax = 4088;
 
 const DiffPage = () => {
   const { mode } = useAppContext();
@@ -124,9 +67,7 @@ const DiffPage = () => {
         // URLパラメータにdataがある場合は、それをデコードして使用
         let inflatedData;
         try{
-          const decodedData = base64UrlDecode(data);
-          const inflatedDataRaw = ungzip(new Uint8Array(decodedData.split(',').map(num => parseInt(num))), { to: 'string' });
-          inflatedData = JSON.parse(inflatedDataRaw)
+          inflatedData = decompressDiffData(data);
         } catch (error) {
           inflatedData = { 'diff': {}, 'user': {} };
           setIsUrldataValid(false);
@@ -209,13 +150,10 @@ const DiffPage = () => {
 
   const handleShare = () => {
     const data = { diff, user }
-    const jsonString = JSON.stringify(data);
-    const compressedData = gzip(jsonString, { to: 'string' });
-    const base64Data = base64UrlEncode(compressedData);
-    //const url = encodeURIComponent(`${window.location.origin}/new?data=${base64Data}`);
-    //const originUrl = window.location.origin;
-    const originUrl = 'https://chinimuruhi.github.io/INFINITAS-ScoreViewer';
-    const url = `${originUrl}/new?data=${base64Data}`
+    const base64Data = compressDiffData(data);
+    const topUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]+$/, '/');
+    const currentUrl = window.location;
+    const url = `${currentUrl}?data=${base64Data}`
 
     // ツイート文面を作成
     let tweetText = `${user.djname} さんの更新差分\n`
@@ -243,7 +181,7 @@ const DiffPage = () => {
     let twitterUrl;
     // TwitterのURLを生成
     if(url.length >= urlLengthMax){
-      twitterUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(originUrl)}&hashtags=inf_sv&text=${encodeURIComponent(tweetText + '(更新データが多すぎるため共有URLの生成に失敗しました)\n\n')}`;
+      twitterUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(topUrl)}&hashtags=inf_sv&text=${encodeURIComponent(tweetText + '(更新データが多すぎるため共有URLの生成に失敗しました)\n\n')}`;
     }else{
       twitterUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&hashtags=inf_sv&text=${encodeURIComponent(tweetText)}\n`;
     }
@@ -274,8 +212,8 @@ const DiffPage = () => {
               id, title, difficulty, lv,
               before: entry.cleartype.old,
               after: entry.cleartype.new,
-              colorBefore: clearTypeColor[entry.cleartype.old],
-              colorAfter: clearTypeColor[entry.cleartype.new],
+              colorBefore: clearColorMap[entry.cleartype.old],
+              colorAfter: clearColorMap[entry.cleartype.new],
             });
           }
 
@@ -283,8 +221,8 @@ const DiffPage = () => {
           if (entry?.score?.new !== entry?.score?.old) {
             scoreUpdatesCount[mode]++;
             if(excludeNewSongs && entry?.cleartype?.old === 0) continue;
-            const pBefore = entry.score.old / (notes * 2);
-            const pAfter = entry.score.new / (notes * 2);
+            const pBefore = getPercentage(entry.score.old, notes);
+            const pAfter = getPercentage(entry.score.new, notes);
             scoreUpdates.push({
               id, title, difficulty, lv, notes,
               beforeScore: entry.score.old,
@@ -298,12 +236,12 @@ const DiffPage = () => {
           // ミスカウント更新
           if (entry?.misscount?.new !== entry?.misscount?.old) {
             missUpdatesCount[mode]++;
-            if(excludeNewSongs && entry?.misscount?.old === 99999) continue;
+            if(excludeNewSongs && entry?.misscount?.old === defaultMisscount) continue;
             missUpdates.push({
               id, title, difficulty, lv,
-              beforeMisscount: entry.misscount.old === 99999 ? '-' : entry.misscount.old,
-              afterMisscount: entry.misscount.new === 99999 ? '-' : entry.misscount.new,
-              diff: entry.misscount.old === 99999 ? 99999 : entry.misscount.new - entry.misscount.old
+              beforeMisscount: entry.misscount.old === defaultMisscount ? '-' : entry.misscount.old,
+              afterMisscount: entry.misscount.new === defaultMisscount ? '-' : entry.misscount.new,
+              diff: entry.misscount.old === defaultMisscount ? defaultMisscount : entry.misscount.new - entry.misscount.old
             });
           }
         }
@@ -369,9 +307,9 @@ const DiffPage = () => {
                   <TableRow key={`${row.id}_${row.difficulty}`}>
                     <TableCell>☆{row.lv}</TableCell>
                     <TableCell>{row.title} [{row.difficulty}]</TableCell>
-                    <TableCell sx={{ backgroundColor: row.colorBefore, textAlign: 'center' }}>{clearTypeLabel[row.before]}</TableCell>
+                    <TableCell sx={{ backgroundColor: row.colorBefore, textAlign: 'center' }}>{simpleClearName[row.before]}</TableCell>
                     <TableCell sx={{ paddingLeft: 0, paddingRight: 0, textAlign: 'center' }}>→</TableCell>
-                    <TableCell sx={{ backgroundColor: row.colorAfter, textAlign: 'center' }}>{clearTypeLabel[row.after]}</TableCell>
+                    <TableCell sx={{ backgroundColor: row.colorAfter, textAlign: 'center' }}>{simpleClearName[row.after]}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -431,7 +369,7 @@ const DiffPage = () => {
                     <TableCell sx={{ textAlign: 'center' }}>
                       {row.afterMisscount}
                     </TableCell>
-                    <TableCell sx={{ textAlign: 'center' }}>{row.diff !== 99999 ? row.diff : ''}</TableCell>
+                    <TableCell sx={{ textAlign: 'center' }}>{row.diff !== defaultMisscount ? row.diff : ''}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -5,13 +5,10 @@ import {
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Tooltip } from 'recharts';
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
+import { raderCategoryColors } from '../constants/colorConstrains';
+import { chartCategories } from '../constants/chartInfoConstrains';
+import { difficultyKey } from '../constants/difficultyConstrains';
 
-const categories = ['NOTES', 'CHORD', 'PEAK', 'CHARGE', 'SCRATCH', 'SOFLAN'] as const;
-const categoryColors: Record<string, string> = {
-  NOTES: '#ff69b4', CHORD: '#99ff99', PEAK: '#ffff66',
-  CHARGE: '#cc66ff', SCRATCH: '#ff6666', SOFLAN: '#99ccff'
-};
-const difficultyIndexMap = { B: 0, N: 1, H: 2, A: 3, L: 4 };
 
 const RadarPage = () => {
   const { mode } = useAppContext();
@@ -45,13 +42,13 @@ const RadarPage = () => {
 
         for (const id in userData) {
           for (const diff in userData[id]) {
-            const index = difficultyIndexMap[diff as keyof typeof difficultyIndexMap];
+            const index = difficultyKey.indexOf(diff);
             const score = userData[id][diff].score;
             const notes = radarJson[id]?.notes?.[index] ?? 0;
             if (!notes || !score) continue;
             const scoreRate = score / (notes * 2);
             const radarItem: Record<string, any> = { id, diff, score, notes, scoreRate };
-            categories.forEach(cat => {
+            chartCategories.forEach(cat => {
               const attr = radarJson[id]?.[cat]?.[index];
               if (attr) {
                 radarItem[cat] = attr * scoreRate;
@@ -64,7 +61,7 @@ const RadarPage = () => {
 
         const top: Record<string, any[]> = {};
         const averages: Record<string, number> = {};
-        categories.forEach(cat => {
+        chartCategories.forEach(cat => {
           const sorted = [...songRadarResults].sort((a, b) => (b[cat] ?? 0) - (a[cat] ?? 0)).slice(0, 10);
           top[cat] = sorted;
           averages[cat] = parseFloat((sorted.reduce((sum, cur) => sum + (cur[cat] ?? 0), 0) / 10).toFixed(2));
@@ -110,12 +107,12 @@ const RadarPage = () => {
       <Typography variant="h6" align="center" sx={{ mt: 2 }}>Total: {totalAverage}</Typography>
 
       <Tabs value={selectedTab} onChange={(_, v) => setSelectedTab(v)} sx={{ mt: 2 }} variant="scrollable" scrollButtons="auto">
-        {categories.map((cat, i) => (
+        {chartCategories.map((cat, i) => (
           <Tab key={cat} label={`${cat} (${topAverages[cat]?.toFixed(2) ?? '-'})`} value={i} />
         ))}
       </Tabs>
 
-      {categories.map((cat, i) => selectedTab === i && (
+      {chartCategories.map((cat, i) => selectedTab === i && (
         <Box key={cat} sx={{ mt: 2 }}>
           <Typography variant="h6" sx={{ color: 'black' }}>TOP10</Typography>
           <Table size="small">
@@ -130,7 +127,7 @@ const RadarPage = () => {
             </TableHead>
             <TableBody>
               {topSongs[cat]?.map((s, i) => {
-                const level = chartInfo[s.id]?.level?.[mode.toLowerCase()]?.[difficultyIndexMap[s.diff]];
+                const level = chartInfo[s.id]?.level?.[mode.toLowerCase()]?.[difficultyKey.indexOf(s.diff)];
                 return (
                   <TableRow key={i}>
                     <TableCell>{titleMap[s.id] || s.id} [{s.diff}]</TableCell>

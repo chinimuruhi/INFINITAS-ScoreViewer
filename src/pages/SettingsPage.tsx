@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Container,
-  Divider,
   Paper,
   Stack,
   TextField,
@@ -16,23 +15,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
 } from '@mui/material';
 import { getCurrentFormattedDate, getCurrentFormattedTime } from '../utils/dateUtils';
+import { appKeys } from '../constants/localStrageConstrains';
 
-type UserLS = {
-  djname: string;
-  lastupdated: string; // YYYY-MM-DD
-};
-
-const APP_KEYS = ['user', 'data', 'diff', 'timestamps'] as const;
 
 const SettingsPage: React.FC = () => {
-  // DJ Name state
   const [djName, setDjName] = useState<string>('');
-  const [loadedUser, setLoadedUser] = useState<UserLS | null>(null);
+  const [loadedUser, setLoadedUser] = useState<any>({});
 
   // Snackbar
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
@@ -43,31 +33,18 @@ const SettingsPage: React.FC = () => {
 
   // Import
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [importPreview, setImportPreview] = useState<string>('');
   const [importJson, setImportJson] = useState<any | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Delete
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const appSnapshot = useMemo(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      const data = JSON.parse(localStorage.getItem('data') || 'null');
-      const diff = JSON.parse(localStorage.getItem('diff') || 'null');
-      const timestamps = JSON.parse(localStorage.getItem('timestamps') || 'null');
-      return { user, data, diff, timestamps };
-    } catch {
-      return { user: null, data: null, diff: null };
-    }
-  }, []);
-
   useEffect(() => {
     // 初回ロード時に user を読み込み
     try {
       const userRaw = localStorage.getItem('user');
       if (userRaw) {
-        const u = JSON.parse(userRaw) as UserLS;
+        const u = JSON.parse(userRaw);
         setLoadedUser(u);
         setDjName(u.djname || '');
       }
@@ -78,7 +55,7 @@ const SettingsPage: React.FC = () => {
 
   const handleSaveDjName = () => {
     try {
-      const newUser: UserLS = {
+      const newUser = {
         djname: djName.trim(),
         lastupdated: loadedUser?.lastupdated || getCurrentFormattedDate(),
       };
@@ -127,12 +104,10 @@ const SettingsPage: React.FC = () => {
       const text = await file.text();
       const json = JSON.parse(text);
 
-      // ゆるめのバリデーション
       if (!('user' in json) && !('data' in json) && !('diff' in json)&& !('timestamps' in json)) {
         throw new Error('ファイルが不正です。');
       }
       setImportJson(json);
-      setImportPreview(text.slice(0, 800));
       setImportDialogOpen(true);
     } catch (err: any) {
       setSnack({ open: true, message: `ファイルの読み込みに失敗しました: ${err.message || err}`, severity: 'error' });
@@ -157,7 +132,6 @@ const SettingsPage: React.FC = () => {
 
       setImportDialogOpen(false);
       setImportJson(null);
-      setImportPreview('');
 
       // 状態も更新
       try {
@@ -178,7 +152,7 @@ const SettingsPage: React.FC = () => {
 
   const applyDelete = () => {
     try {
-      APP_KEYS.forEach((k) => localStorage.removeItem(k));
+      appKeys.forEach((k) => localStorage.removeItem(k));
       setDeleteDialogOpen(false);
 
       // 画面上の状態も初期化
@@ -258,12 +232,8 @@ const SettingsPage: React.FC = () => {
         <DialogTitle>インポートの確認</DialogTitle>
         <DialogContent dividers>
           <DialogContentText sx={{ mb: 2 }}>
-            選択したファイルの内容をローカルストレージに取り込みます。既存データは上書きされます。
+            選択したファイルの内容を取り込みます。既存データは上書きされます。
           </DialogContentText>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>プレビュー</Typography>
-          <Box component="pre" sx={{ maxHeight: 240, overflow: 'auto', p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
-            {importPreview}
-          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setImportDialogOpen(false)}>キャンセル</Button>
