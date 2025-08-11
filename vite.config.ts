@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       sitemap({
-        hostname: 'https://chinimuruhi.github.io',
+        hostname: 'https://chinimuruhi.github.io/INFINITAS-ScoreViewer',
         outDir: 'dist',
         basePath: "/INFINITAS-ScoreViewer",
         exclude: ['/404', '/google9de41a3cfb1f4454'],
