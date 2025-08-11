@@ -9,7 +9,11 @@
     // 現在のURLのパスとクエリパラメータを取得してリダイレクト
     const currentUrl = window.location.pathname + window.location.search;
     const baseUrl = window.location.origin + "/INFINITAS-ScoreViewer";
-    window.location.replace(baseUrl + currentUrl);  // リダイレクト先にパスとGETパラメータを付けてリダイレクト
+    
+    // もし既にリダイレクト先が含まれていればリダイレクトしない
+    if (!currentUrl.startsWith(baseUrl)) {
+      window.location.replace(baseUrl + currentUrl);  // リダイレクト先にパスとGETパラメータを付けてリダイレクト
+    }
   </script>
 </head>
 <body>
