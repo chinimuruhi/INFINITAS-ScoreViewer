@@ -44,7 +44,7 @@ jobs:
       - name: Copy public files to dist
         run: |
           # public フォルダの内容を dist フォルダにコピー
-          cp -r ./public/* ./dist/
+          cp -r ./public/. ./dist/
           
       - name: Setup Pages
         uses: actions/configure-pages@v4
