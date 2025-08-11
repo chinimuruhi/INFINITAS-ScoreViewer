@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         hostname: 'https://chinimuruhi.github.io',
         outDir: 'dist',
         basePath: "/INFINITAS-ScoreViewer",
-        exclude: ['/404'],
+        exclude: ['/404', '/google9de41a3cfb1f4454'],
       }),
     ],
     // アセットなどのパスを変換するベースとなるパス
