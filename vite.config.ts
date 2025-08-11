@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
     base: base,
     // ビルドの出力先
     build: {
-      outDir: 'dict'
+      outDir: 'dist',
+      target: 'esnext',
     },
     server: {
       port: 3000
