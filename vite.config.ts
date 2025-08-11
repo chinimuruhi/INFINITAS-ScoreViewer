@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import sitemap from 'vite-plugin-sitemap';
 
 export default defineConfig(({ mode }) => {
   // baseプロパティに設定する値
@@ -11,7 +12,15 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      sitemap({
+        hostname: 'https://chinimuruhi.github.io',
+        outDir: 'dist',
+        basePath: "/INFINITAS-ScoreViewer",
+        exclude: ['/404'],
+      }),
+    ],
     // アセットなどのパスを変換するベースとなるパス
     base,
     // ビルドの出力先
