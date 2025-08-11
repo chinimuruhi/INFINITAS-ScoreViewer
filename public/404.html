@@ -1,0 +1,18 @@
+<!-- public/404.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found</title>
+  <script>
+    // 現在のURLのパスとクエリパラメータを取得してリダイレクト
+    const currentUrl = window.location.pathname + window.location.search;
+    const baseUrl = window.location.origin + "/INFINITAS-ScoreViewer";
+    window.location.replace(baseUrl + currentUrl);  // リダイレクト先にパスとGETパラメータを付けてリダイレクト
+  </script>
+</head>
+<body>
+  <h1>Page not found</h1>
+</body>
+</html>
