@@ -13,11 +13,14 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     // アセットなどのパスを変換するベースとなるパス
-    base: base,
+    base,
     // ビルドの出力先
     build: {
       outDir: 'dist',
       target: 'esnext',
+    },
+    define: {
+      'process.env.BASE_URL': JSON.stringify(base),
     },
     server: {
       port: 3000

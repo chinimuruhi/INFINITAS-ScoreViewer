@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
@@ -11,11 +10,7 @@ import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import UploadRoundedIcon from '@mui/icons-material/UploadRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import DifferenceRoundedIcon from '@mui/icons-material/DifferenceRounded';
-import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
-import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
-import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
 import RadarRoundedIcon from '@mui/icons-material/RadarRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 
@@ -247,7 +242,7 @@ const AppShell: React.FC = () => {
 };
 
 const App: React.FC = () => (
-  <Router>
+  <Router basename={process.env.BASE_URL || '/'}>
     <AppShell />
   </Router>
 );
