@@ -1,11 +1,8 @@
 name: Deploy static content to Pages
 
 on:
-  # 対象ブランチプッシュ時に実行されます
   push:
     branches: ['main']
-
-  # Actions タブから手動でワークフローを実行できるようにします
   workflow_dispatch:
 
 permissions:
@@ -13,13 +10,11 @@ permissions:
   pages: write
   id-token: write
 
-# 1 つの同時デプロイメントを可能にする
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  # デプロイするだけなので、単一のデプロイジョブ
   deploy:
     environment:
       name: github-pages
@@ -28,33 +23,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build
         run: npm run build
-        
+
+      - name: List files in public before copy
+        run: |
+          echo "Listing files in public folder:"
+          ls -la ./public
+
       - name: Copy public files to dist
         run: |
-          # public フォルダの内容を dist フォルダにコピー
+          echo "Copying public files to dist"
           cp -r ./public/. ./dist/
-          
+
+      - name: List files in dist after copy
+        run: |
+          echo "Listing files in dist folder:"
+          ls -la ./dist
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # dist フォルダのアップロード
           path: './dist'
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
