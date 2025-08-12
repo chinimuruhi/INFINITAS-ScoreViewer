@@ -53,7 +53,7 @@ const Index: React.FC = () => {
                 </Box>
               </Typography>
               <Typography variant="h6" sx={{ mt: 2, opacity: 0.9 }}>
-                INFINITASデータや手動入力のデータから、各種難易度表とスコア・ランプの状況などを一括で見やすく。
+                INFINITASデータや手動入力のデータも、ACと同様の指標で可視化。
               </Typography>
 
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 4 }}>
@@ -252,7 +252,7 @@ const Index: React.FC = () => {
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
               <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.secondary">2025/8/11</Typography>
+                <Typography variant="subtitle2" color="text.secondary">2025/8/12</Typography>
                 <Typography variant="body1">サイト公開</Typography>
               </Stack>
             </CardContent>
