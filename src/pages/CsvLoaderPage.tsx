@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Container, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem,
   SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField
@@ -9,7 +10,7 @@ import { getCurrentFormattedDate } from '../utils/dateUtils';
 import { useAppContext } from '../context/AppContext';
 import LinkComponent from '../components/LinkComponent';
 import { Page, PageHeader } from '../components/Page';
-import SectionCard from '../components/SectionCard'; 
+import SectionCard from '../components/SectionCard';
 
 const CsvLoaderPage = () => {
   const navigate = useNavigate();
@@ -92,7 +93,7 @@ const CsvLoaderPage = () => {
   const readFileAsText = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    
+
     let text = '';
 
     // 'official' の場合、UTF-8 with BOMを処理
@@ -137,124 +138,130 @@ const CsvLoaderPage = () => {
       <SectionCard>
         <Container sx={{ mt: 4 }}>
 
-      { isDjNameEmpty && (
-        <>
-          <TextField
-            label="DJ Name"
-            value={djName}
-            onChange={(e) => setDjName(e.target.value)}
-            inputProps={{ maxLength: 20 }}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-        </>
-      )}
+          {isDjNameEmpty && (
+            <>
+              <TextField
+                label="DJ Name"
+                value={djName}
+                onChange={(e) => setDjName(e.target.value)}
+                inputProps={{ maxLength: 20 }}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+            </>
+          )}
 
-      <Box sx={{ mb: 2 }}>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="format-label">形式</InputLabel>
-          <Select
-            labelId="format-label"
-            value={format}
-            label="形式"
-            onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
-          >
-            <MenuItem value="reflux">Reflux TSV</MenuItem>
-            <MenuItem value="idc">INFINITAS打鍵カウンタCSV (beta)</MenuItem>
-            <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
-          </Select>
-        </FormControl>
-
-        {format === 'official' && (
-          <>
+          <Box sx={{ mb: 2 }}>
             <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel id="mode-label">モード</InputLabel>
+              <InputLabel id="format-label">形式</InputLabel>
               <Select
-                labelId="mode-label"
-                value={mode}
-                label="モード"
-                onChange={(e: SelectChangeEvent) => setMode(e.target.value as any)}
+                labelId="format-label"
+                value={format}
+                label="形式"
+                onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
               >
-                <MenuItem value="SP">SP</MenuItem>
-                <MenuItem value="DP">DP</MenuItem>
+                <MenuItem value="reflux">Reflux TSV</MenuItem>
+                <MenuItem value="idc">INFINITAS打鍵カウンタCSV (beta)</MenuItem>
+                <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
               </Select>
             </FormControl>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              beatmania IIDXの公式HP(<LinkComponent url="https://p.eagate.573.jp/game/2dx/">https://p.eagate.573.jp/game/2dx/</LinkComponent>)からダウンロードできるスコアデータCSVです。
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。CSVのダウンロードにはbeatmania IIDX プレミアムコース登録が必要となります。
-            </Typography>
-            <Alert severity="warning">
-              CPI（<LinkComponent url="https://cpi.makecir.com/">https://cpi.makecir.com/</LinkComponent>）やBPI（<LinkComponent url="https://bpi.poyashi.me/">https://bpi.poyashi.me/</LinkComponent>）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
-            </Alert>
-          </>
-        )}
 
-        {format === 'idc' && (
-          <>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              INFINITAS打鍵カウンタ（<LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">https://github.com/dj-kata/inf_daken_counter_obsw</LinkComponent>）で出力できるCSVです。
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
-            </Typography>
-            <Alert severity="warning">
-              全曲における動作確認ができておらず、一部楽曲の読み込みに失敗する可能性がございます。楽曲の読み込みに失敗した場合は報告いただけますと幸いです。
-            </Alert>
-          </>
-        )}
+            {format === 'official' && (
+              <>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel id="mode-label">モード</InputLabel>
+                  <Select
+                    labelId="mode-label"
+                    value={mode}
+                    label="モード"
+                    onChange={(e: SelectChangeEvent) => setMode(e.target.value as any)}
+                  >
+                    <MenuItem value="SP">SP</MenuItem>
+                    <MenuItem value="DP">DP</MenuItem>
+                  </Select>
+                </FormControl>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  beatmania IIDXの公式HP(<LinkComponent url="https://p.eagate.573.jp/game/2dx/">https://p.eagate.573.jp/game/2dx/</LinkComponent>)からダウンロードできるスコアデータCSVです。
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。CSVのダウンロードにはbeatmania IIDX プレミアムコース登録が必要となります。
+                </Typography>
+                <Alert severity="warning">
+                  CPI（<LinkComponent url="https://cpi.makecir.com/">https://cpi.makecir.com/</LinkComponent>）やBPI（<LinkComponent url="https://bpi.poyashi.me/">https://bpi.poyashi.me/</LinkComponent>）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
+                </Alert>
+              </>
+            )}
 
-        {format === 'reflux' && (
-          <>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Reflux（<LinkComponent url="https://github.com/olji/Reflux">https://github.com/olji/Reflux</LinkComponent>）で出力できるTSVです。
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
-            </Typography>
-          </>
-        )}
-      </Box>
+            {format === 'idc' && (
+              <>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  INFINITAS打鍵カウンタ（<LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">https://github.com/dj-kata/inf_daken_counter_obsw</LinkComponent>）で出力できるCSVです。
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+                </Typography>
+                <Alert severity="warning">
+                  全曲における動作確認ができておらず、一部楽曲の読み込みに失敗する可能性がございます。楽曲の読み込みに失敗した場合は報告いただけますと幸いです。
+                </Alert>
+              </>
+            )}
 
-      <Button variant="contained" component="label">
-        ファイルを選択
-        <input type="file" hidden onChange={handleFileUpload} />
-      </Button>
-
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-      {warnings.length > 0 && (
-        <Alert severity="warning" sx={{ mt: 2 }}>
-          {warnings.map((w, i) => <div key={i}>{w}</div>)}
-        </Alert>
-      )}
-
-      <Dialog open={successDialogOpen} onClose={handleSuccessDialogClose}>
-        <DialogTitle>読み込み成功</DialogTitle>
-        <DialogContent>
-          データの読み込みに成功しました。
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSuccessDialogClose}>OK</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={reportDialogOpen} onClose={() => setReportDialogOpen(false)}>
-        <DialogTitle>読み込み成功</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" gutterBottom>
-            以下の楽曲が読み込めませんでした。修正のため、報告いただけますと幸いです。
-          </Typography>
-          <Box>
-            {failedTitles.map((title, i) => <div key={i}>{title}</div>)}
+            {format === 'reflux' && (
+              <>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  Reflux（<LinkComponent url="https://github.com/olji/Reflux">https://github.com/olji/Reflux</LinkComponent>）で出力できるTSVです。
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
+                </Typography>
+              </>
+            )}
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleReport}>報告する</Button>
-          <Button onClick={() => { setReportDialogOpen(false); navigate('/diff'); }}>OK</Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+
+          <Button variant="contained" component="label">
+            ファイルを選択
+            <input type="file" hidden onChange={handleFileUpload} />
+          </Button>
+
+          <Box sx={{ mt: 1.5 }}>
+            <Button component={RouterLink} to="/edit" size="small">
+              手動入力はこちら
+            </Button>
+          </Box>
+
+          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+          {warnings.length > 0 && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {warnings.map((w, i) => <div key={i}>{w}</div>)}
+            </Alert>
+          )}
+
+          <Dialog open={successDialogOpen} onClose={handleSuccessDialogClose}>
+            <DialogTitle>読み込み成功</DialogTitle>
+            <DialogContent>
+              データの読み込みに成功しました。
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleSuccessDialogClose}>OK</Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog open={reportDialogOpen} onClose={() => setReportDialogOpen(false)}>
+            <DialogTitle>読み込み成功</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" gutterBottom>
+                以下の楽曲が読み込めませんでした。修正のため、報告いただけますと幸いです。
+              </Typography>
+              <Box>
+                {failedTitles.map((title, i) => <div key={i}>{title}</div>)}
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleReport}>報告する</Button>
+              <Button onClick={() => { setReportDialogOpen(false); navigate('/diff'); }}>OK</Button>
+            </DialogActions>
+          </Dialog>
+        </Container>
       </SectionCard>
     </Page>
   );
