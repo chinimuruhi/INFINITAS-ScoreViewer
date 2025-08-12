@@ -121,7 +121,7 @@ const DiffPage = () => {
     const currentUrl = window.location;
     const url = `${currentUrl}?data=${base64Data}`;
 
-    let tweetText = `${user.djname} さんの更新差分\n`;
+    let tweetText = `${user.djname ? user.djname + 'さんの' : ''}更新差分\n`;
     if (processed.clearUpdatesCount['SP'] > 0) tweetText += `ランプ更新(SP)： ${processed.clearUpdatesCount['SP']}件\n`;
     if (processed.scoreUpdatesCount['SP'] > 0) tweetText += `スコア更新(SP)： ${processed.scoreUpdatesCount['SP']}件\n`;
     if (processed.missUpdatesCount['SP'] > 0) tweetText += `BP更新(SP)： ${processed.missUpdatesCount['SP']}件\n`;
