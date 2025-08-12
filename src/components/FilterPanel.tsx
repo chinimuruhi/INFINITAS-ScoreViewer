@@ -3,6 +3,8 @@ import {
   Box, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText,
   Collapse, Button, IconButton, Typography
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { FilterList, FilterListOff } from '@mui/icons-material';
 import { FilterState } from '../types/Types';
 import { simpleClearName } from '../constants/clearConstrains';
@@ -13,6 +15,9 @@ type Props = {
 };
 
 const FilterPanel = ({ filters, onChange }: Props) => {
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down('sm')); // ← スマホ判定
+
   const [versionLabels, setVersionLabels] = useState<{ [key: number]: string }>({});
   const [labelMap, setLabelMap] = useState<{ [key: number]: string }>({});
   const [open, setOpen] = useState(false);
@@ -23,9 +28,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
       .then(res => res.json())
       .then(data => {
         const map: { [key: number]: string } = {};
-        Object.entries(data).forEach(([k, v]) => {
-          map[parseInt(k)] = v as string;
-        });
+        Object.entries(data).forEach(([k, v]) => { map[parseInt(k)] = v as string; });
         setVersionLabels(map);
       });
 
@@ -33,53 +36,86 @@ const FilterPanel = ({ filters, onChange }: Props) => {
       .then(res => res.json())
       .then(data => {
         const map: { [key: number]: string } = {};
-        Object.entries(data).forEach(([k, v]) => {
-          map[parseInt(k)] = v as string;
-        });
+        Object.entries(data).forEach(([k, v]) => { map[parseInt(k)] = v as string; });
         setLabelMap(map);
       });
   }, []);
 
-  const handleApply = () => {
-    onChange(pendingFilters);
+  const handleApply = () => onChange(pendingFilters);
+
+  // 共通スタイル（スマホでのサイズ感）
+  const selectBaseSx = {
+    '& .MuiSelect-select': {
+      fontSize: isXs ? 13 : 14,
+      py: isXs ? 1 : 1.25, // 内側の縦パディングを少しだけ詰める
+    },
+  } as const;
+
+  const menuProps = {
+    PaperProps: {
+      sx: {
+        maxHeight: isXs ? 280 : 360,
+        '& .MuiMenuItem-root': {
+          fontSize: isXs ? 13 : 14,
+          minHeight: 'unset',
+          py: 0.75,
+        },
+        '& .MuiCheckbox-root': { p: isXs ? 0.5 : 0.75 },
+      },
+    },
   };
 
   return (
     <Box sx={{ mb: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton onClick={() => setOpen(!open)}>
-          {open ? <FilterListOff /> : <FilterList />}
+        <IconButton onClick={() => setOpen(!open)} size={isXs ? 'small' : 'medium'}>
+          {open ? <FilterListOff fontSize={isXs ? 'small' : 'medium'} /> : <FilterList fontSize={isXs ? 'small' : 'medium'} />}
         </IconButton>
-        <Typography variant="button" onClick={() => setOpen(!open)} sx={{ cursor: 'pointer' }}>
+        <Typography
+          variant="button"
+          onClick={() => setOpen(!open)}
+          sx={{ cursor: 'pointer', fontSize: isXs ? 12 : 13 }}
+        >
           {open ? 'フィルターを閉じる' : 'フィルターを開く'}
         </Typography>
       </Box>
 
       <Collapse in={open}>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="cleartype-label">クリアランプ</InputLabel>
+        {/* クリアランプ */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>クリアランプ</InputLabel>
           <Select
-            labelId="cleartype-label"
             multiple
             value={pendingFilters?.cleartype || []}
             onChange={(e) => setPendingFilters({ ...pendingFilters, cleartype: e.target.value as number[] })}
-            renderValue={(selected) => selected.map((v: number) => simpleClearName[v]).join(', ')}
+            renderValue={(selected) => (selected as number[]).map((v) => simpleClearName[v]).join(', ')}
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
           >
             {simpleClearName.map((label, index) => (
               <MenuItem key={index} value={index}>
                 <Checkbox checked={pendingFilters?.cleartype?.includes(index) || false} />
-                <ListItemText primary={label} />
+                <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={label} />
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="unlock-label">INFINITAS解禁状況（Reflux）</InputLabel>
+        {/* 解禁状況 */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>INFINITAS解禁状況（Reflux）</InputLabel>
           <Select
-            labelId="unlock-label"
             value={pendingFilters?.unlocked ?? ''}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, unlocked: e.target.value === '' ? undefined : e.target.value === 'true' })}
+            onChange={(e) =>
+              setPendingFilters({
+                ...pendingFilters,
+                unlocked: e.target.value === '' ? undefined : e.target.value === 'true',
+              })
+            }
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
           >
             <MenuItem value="">すべて</MenuItem>
             <MenuItem value="true">解禁済み</MenuItem>
@@ -87,12 +123,20 @@ const FilterPanel = ({ filters, onChange }: Props) => {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="release-type-label">AC/INFINITAS収録状況</InputLabel>
+        {/* 収録状況 */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>AC/INFINITAS収録状況</InputLabel>
           <Select
-            labelId="release-type-label"
             value={pendingFilters?.releaseType || ''}
-            onChange={(e) => setPendingFilters({ ...pendingFilters, releaseType: e.target.value as FilterState['releaseType'] || undefined })}
+            onChange={(e) =>
+              setPendingFilters({
+                ...pendingFilters,
+                releaseType: (e.target.value as typeof filters.releaseType) || undefined,
+              })
+            }
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
           >
             <MenuItem value="">すべて</MenuItem>
             <MenuItem value="ac">AC収録</MenuItem>
@@ -102,44 +146,57 @@ const FilterPanel = ({ filters, onChange }: Props) => {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="version-label">バージョン</InputLabel>
+        {/* バージョン */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>バージョン</InputLabel>
           <Select
-            labelId="version-label"
             multiple
             value={pendingFilters?.version || []}
             onChange={(e) => setPendingFilters({ ...pendingFilters, version: e.target.value as number[] })}
-            renderValue={(selected) => selected.map((v) => versionLabels[v] || v).join(', ')}
+            renderValue={(selected) => (selected as number[]).map((v) => versionLabels[v] || v).join(', ')}
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
           >
             {Object.keys(versionLabels).sort((a, b) => parseInt(a) - parseInt(b)).map((key) => (
-              <MenuItem key={key} value={parseInt(key)}>
-                <Checkbox checked={pendingFilters?.version?.includes(parseInt(key)) || false} />
-                <ListItemText primary={versionLabels[parseInt(key)]} />
+              <MenuItem key={key} value={parseInt(key, 10)}>
+                <Checkbox checked={pendingFilters?.version?.includes(parseInt(key, 10)) || false} />
+                <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={versionLabels[parseInt(key, 10)]} />
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="label-label">楽曲パック</InputLabel>
+        {/* 楽曲パック */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>楽曲パック</InputLabel>
           <Select
-            labelId="label-label"
             multiple
             value={pendingFilters?.label || []}
             onChange={(e) => setPendingFilters({ ...pendingFilters, label: e.target.value as number[] })}
-            renderValue={(selected) => selected.map((v) => labelMap[v] || v).join(', ')}
+            renderValue={(selected) => (selected as number[]).map((v) => labelMap[v] || v).join(', ')}
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
           >
             {Object.keys(labelMap).sort((a, b) => parseInt(a) - parseInt(b)).map((key) => (
-              <MenuItem key={key} value={parseInt(key)}>
-                <Checkbox checked={pendingFilters?.label?.includes(parseInt(key)) || false} />
-                <ListItemText primary={labelMap[parseInt(key)]} />
+              <MenuItem key={key} value={parseInt(key, 10)}>
+                <Checkbox checked={pendingFilters?.label?.includes(parseInt(key, 10)) || false} />
+                <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={labelMap[parseInt(key, 10)]} />
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Box textAlign="right">
-          <Button variant="contained" onClick={handleApply}>フィルターを適用</Button>
+          <Button
+            variant="contained"
+            size={isXs ? 'small' : 'medium'}
+            onClick={handleApply}
+            sx={{ fontSize: isXs ? 12 : 14, fontWeight: 700 }}
+          >
+            フィルターを適用
+          </Button>
         </Box>
       </Collapse>
     </Box>

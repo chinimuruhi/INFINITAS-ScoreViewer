@@ -7,7 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { parseOfficialCsv, parseRefluxTsv, parseIDCCsv, mergeWithCSVEntries } from '../utils/scoreDataUtils';
 import { getCurrentFormattedDate } from '../utils/dateUtils';
 import { useAppContext } from '../context/AppContext';
-import LinkComponent from '../components/LinkComponent'; 
+import LinkComponent from '../components/LinkComponent';
+import { Page, PageHeader } from '../components/Page';
+import SectionCard from '../components/SectionCard'; 
 
 const CsvLoaderPage = () => {
   const navigate = useNavigate();
@@ -130,11 +132,10 @@ const CsvLoaderPage = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        CSV/TSV 読み込み
-      </Typography>
-
+    <Page>
+      <PageHeader compact title="CSV/TSV読み込み" />
+      <SectionCard>
+        <Container sx={{ mt: 4 }}>
 
       { isDjNameEmpty && (
         <>
@@ -254,6 +255,8 @@ const CsvLoaderPage = () => {
         </DialogActions>
       </Dialog>
     </Container>
+      </SectionCard>
+    </Page>
   );
 };
 

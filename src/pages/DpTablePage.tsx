@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
-  Container, Typography, Grid, Paper, Box, CircularProgress, Backdrop, Tabs, Tab, LinearProgress
+  Container, Typography, Grid, Paper, Box, CircularProgress, Backdrop, Tabs, Tab
 } from '@mui/material';
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
@@ -12,6 +12,8 @@ import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
+import { Page, PageHeader } from '../components/Page';
+import SectionCard from '../components/SectionCard';
 
 const DpTablePage = () => {
   const { mode, filters, setFilters } = useAppContext();
@@ -99,59 +101,93 @@ const DpTablePage = () => {
     return getLampAchiveCount(filteredSongs, clearData);
   }, [filteredSongs, clearData]);
 
+  const getTitleFontSize = (text: string) => {
+    const len = text.length;
+    if (len >= 25) return { xs: 8, sm: 13, md: 13 };
+    if (len >= 15) return { xs: 10, sm: 14, md: 14 };
+    return { xs: 12, sm: 14, md: 14 };
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
+    <Page>
+      <PageHeader compact title="DP非公式難易度表" />
+      <SectionCard dense>
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
+          <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
+            <CircularProgress color="inherit" />
+          </Backdrop>
 
-      <Typography variant="h4" gutterBottom>DP非公式難易度表</Typography>
+          <LampAchieveProgress stats={stats} totalCount={totalCount} />
+          <FilterPanel filters={filters} onChange={setFilters} />
 
-      <LampAchieveProgress stats={stats} totalCount={totalCount} />
-      <FilterPanel filters={filters} onChange={setFilters} />
+          <Tabs value={activeRange} onChange={(_, v) => setActiveRange(v)} sx={{ mb: 3 }} variant="scrollable">
+            {tabRanges.map(range => (
+              <Tab key={range} label={`${range}.0~${range}.9`} value={range} />
+            ))}
+          </Tabs>
 
-      <Tabs value={activeRange} onChange={(_, v) => setActiveRange(v)} sx={{ mb: 3 }}>
-        {tabRanges.map(range => (
-          <Tab key={range} label={`${range}.0~${range}.9`} value={range} />
-        ))}
-      </Tabs>
+          {sortedDecimals.map(dec => (
+            <Box key={dec} sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>{dec}</Typography>
 
-      {sortedDecimals.map(dec => (
-        <Box key={dec} sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>{dec}</Typography>
-          <Grid container spacing={2}>
-            {groupedByDecimal[dec].map(song => {
-              const key = `${song.id}_${song.difficulty}`;
-              const lamp = clearData[key] ?? 0;
-              const bg = clearColorMap[lamp];
-              const title = titleMap[song.id] || song.id;
-              const diffLabel = `[${song.difficulty}]`;
-              const detailLink = `https://zasa.sakura.ne.jp/dp/music.php?id=${song.snj_id}`;
-              const index = difficultyKey.indexOf(song.difficulty);
-              const officialLevel = chartInfo[song.id]?.level?.dp?.[index];
+              {/* xs=3カラム、sm/md=12カラム */}
+              <Grid
+                container
+                spacing={{ xs: 1, sm: 2 }}
+                columns={{ xs: 3, sm: 12, md: 12 }}
+              >
+                {groupedByDecimal[dec].map(song => {
+                  const key = `${song.id}_${song.difficulty}`;
+                  const lamp = clearData[key] ?? 0;
+                  const bg = clearColorMap[lamp];
+                  const title = titleMap[song.id] || song.id;
+                  const diffLabel = `[${song.difficulty}]`;
+                  const displayTitle = `${title} ${diffLabel}`;
+                  const detailLink = `https://zasa.sakura.ne.jp/dp/music.php?id=${song.snj_id}`;
+                  const index = difficultyKey.indexOf(song.difficulty);
+                  const officialLevel = chartInfo[song.id]?.level?.dp?.[index];
 
-              return (
-                <Grid item xs={6} sm={4} md={2} key={key}>
-                  <Paper sx={{ p: 1.2, height: '100%', backgroundColor: bg }} elevation={3}>
-                    <Typography variant="body2" fontWeight="bold">
-                      <a href={detailLink} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        {title} {diffLabel}
-                      </a>
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      難易度: {officialLevel != null && officialLevel > 0 ? `☆${officialLevel} (${song.value.toFixed(1)})` : `(${song.value.toFixed(1)})`}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Box>
-      ))}
-    </Container>
+                  return (
+                    // xs=1 → 3カラム、sm=4、md=2 は従来レイアウト維持
+                    <Grid item xs={1} sm={4} md={2} key={key} sx={{ minWidth: 0 }}>
+                      <Paper elevation={3} sx={{ p: { xs: 1, sm: 1.2 }, height: '100%', backgroundColor: bg }}>
+                        <Typography
+                          variant="body2"
+                          fontWeight="bold"
+                          sx={{
+                            fontSize: getTitleFontSize(displayTitle), // ← 長いときだけ小さく
+                            whiteSpace: 'normal',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          <a
+                            href={detailLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ textDecoration: 'none', color: 'inherit' }}
+                          >
+                            {displayTitle}
+                          </a>
+                        </Typography>
+
+                        <Typography variant="caption" display="block">
+                          難易度: {officialLevel != null && officialLevel > 0 ? `☆${officialLevel} (${song.value.toFixed(1)})` : `(${song.value.toFixed(1)})`}
+                        </Typography>
+                        <Typography variant="caption" display="block">
+                          MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+          ))}
+        </Container>
+      </SectionCard>
+    </Page>
   );
 };
 

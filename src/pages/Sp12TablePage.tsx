@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import {
   Container, Tabs, Tab, Typography, Grid, Paper, Box, CircularProgress, Backdrop
 } from '@mui/material';
+import { Page, PageHeader } from '../components/Page';
+import SectionCard from '../components/SectionCard';
 import FilterPanel from '../components/FilterPanel';
 import LampAchieveProgress from '../components/LampAchieveProgress';
 import { ungzip } from 'pako';
@@ -93,49 +95,85 @@ const Sp12TablePage = () => {
     Object.values(groupedSongs).sort((a, b) => b.value - a.value)
   ), [groupedSongs]);
 
+  const getTitleFontSize = (text: string) => {
+    const len = text.length;
+    if (len >= 25) return { xs: 8, sm: 13, md: 13 };
+    if (len >= 15) return { xs: 10, sm: 14, md: 14 };
+    return { xs: 12, sm: 14, md: 14 };
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
+    <Page>
+      <PageHeader compact title="SP☆12 難易度表" />
+      <SectionCard>
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
+          <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
+            <CircularProgress color="inherit" />
+          </Backdrop>
 
-      <Typography variant="h4" gutterBottom>SP☆12 難易度表</Typography>
-      <LampAchieveProgress stats={stats} totalCount={totalCount} />
-      <FilterPanel filters={filters} onChange={setFilters} />
+          <LampAchieveProgress stats={stats} totalCount={totalCount} />
+          <FilterPanel filters={filters} onChange={setFilters} />
 
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 3 }}>
-        <Tab label="CLEAR難易度" value="normal" />
-        <Tab label="HARD CLEAR難易度" value="hard" />
-      </Tabs>
+          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 3 }}>
+            <Tab label="CLEAR難易度" value="normal" />
+            <Tab label="HARD難易度" value="hard" />
+          </Tabs>
 
-      {sortedLabels.map(group => (
-        <Box key={group.label} sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>{group.label}</Typography>
-          <Grid container spacing={2}>
-            {group.songs.map((song) => {
-              const key = `${song.id}_${song.difficulty}`;
-              const lamp = clearData[key] ?? 0;
-              const bg = clearColorMap[lamp];
-              const diffLabel = `[${song.difficulty}]`;
-              const title = titleMap[song.id] || song.id;
+          {sortedLabels.map(group => (
+            <Box key={group.label} sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>{group.label}</Typography>
 
-              return (
-                <Grid item xs={6} sm={4} md={2} key={key}>
-                  <Paper sx={{ p: 1.2, height: '100%', backgroundColor: bg }} elevation={3}>
-                    <Typography variant="body2" fontWeight="bold">
-                      {title} {diffLabel}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Box>
-      ))}
-    </Container>
+              {/* xsは3カラム、sm/mdは12カラム（従来の比率を維持） */}
+              <Grid
+                container
+                spacing={{ xs: 1, sm: 2 }}
+                columns={{ xs: 3, sm: 12, md: 12 }}
+              >
+                {group.songs.map((song) => {
+                  const key = `${song.id}_${song.difficulty}`;
+                  const lamp = clearData[key] ?? 0;
+                  const bg = clearColorMap[lamp];
+                  const diffLabel = `[${song.difficulty}]`;
+                  const title = titleMap[song.id] || song.id;
+
+                  return (
+                    // xsは1/3列=3カラム, smは1/12×4=3カラム, mdは1/12×2=6カラム（従来通り）
+                    <Grid item xs={1} sm={4} md={2} key={key} sx={{ minWidth: 0 }}>
+                      <Paper
+                        elevation={3}
+                        sx={{
+                          p: { xs: 1, sm: 1.2 },
+                          height: '100%',
+                          backgroundColor: bg,
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          fontWeight="bold"
+                          sx={{
+                            fontSize: getTitleFontSize(`${title} ${diffLabel}`),
+                            whiteSpace: 'normal',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {title} {diffLabel}
+                        </Typography>
+                        <Typography variant="caption" display="block">
+                          MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+          ))}
+
+        </Container>
+      </SectionCard>
+    </Page>
   );
 };
 

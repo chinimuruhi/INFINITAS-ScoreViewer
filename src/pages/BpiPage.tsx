@@ -18,6 +18,8 @@ import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { bpiGapColor, scoreColorMap } from '../constants/colorConstrains';
+import { Page, PageHeader } from '../components/Page';
+import SectionCard from '../components/SectionCard';
 
 // BpiPageコンポーネント
 const BpiPage = () => {
@@ -33,6 +35,7 @@ const BpiPage = () => {
   const [chartInfo, setChartInfo] = useState<any>({});
   const [songInfo, setSongInfo] = useState<any>({});
   const [loading, setLoading] = useState(true);
+
 
   // データ取得
   useEffect(() => {
@@ -170,7 +173,7 @@ const BpiPage = () => {
         const avg = song.avg ?? 0;
         const coef = song.coef ?? 1.175;
 
-        if (score !== 0 && score <= notes * 2 ) {
+        if (score !== 0 && score <= notes * 2) {
           const bpi = calculateBpi(wr, avg, notes, score, coef) || -15;
           const m = Math.pow(Math.abs(bpi), k) / n;
           sum += bpi > 0 ? m : -m;
@@ -211,83 +214,234 @@ const BpiPage = () => {
     return gradeCounts;
   }, [filteredSongs, scoreData]);
 
+  const getTitleFontSize = (text: string) => {
+    const len = text.length;
+    if (len >= 25) return { xs: 6, sm: 13, md: 13 };
+    if (len >= 15) return { xs: 8, sm: 14, md: 14 };
+    return { xs: 10, sm: 14, md: 14 };
+  };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>Beat Power Indicator(BPI)</Typography>
-      <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
+    <Page>
+      <PageHeader compact title="Beat Power Indicator(BPI)" />
+      <SectionCard>
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
+          <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
+            <CircularProgress color="inherit" />
+          </Backdrop>
 
-      {/* 総合BPIの表示 */}
-      <Typography variant="h6" gutterBottom>
-        {`総合BPI(☆${level}): ${totalBpi.toFixed(2)}`}
-      </Typography>
+          {/* 総合BPIの表示 */}
+          <Typography variant="h6" gutterBottom>
+            {`総合BPI(☆${level}): ${totalBpi.toFixed(2)}`}
+          </Typography>
 
-      {/* 達成率の表示 */}
-      {Object.keys(achievementRates)
-        .map((grade) => (
-          <Box key={grade} sx={{ mb: 1 }}>
-            <Typography variant="body1">
-              {grade}達成率: {totalCount > 0
-                ? `${((achievementRates[grade] / totalCount) * 100).toFixed(1)}% (${achievementRates[grade]}/${totalCount})`
-                : '0.0% (0/0)'}
-            </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={totalCount > 0 ? (achievementRates[grade] / totalCount) * 100 : 0}
+          {/* 達成率の表示 */}
+          {Object.keys(achievementRates)
+            .map((grade) => (
+              <Box key={grade} sx={{ mb: 1 }}>
+                <Typography variant="body1">
+                  {grade}達成率: {totalCount > 0
+                    ? `${((achievementRates[grade] / totalCount) * 100).toFixed(1)}% (${achievementRates[grade]}/${totalCount})`
+                    : '0.0% (0/0)'}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={totalCount > 0 ? (achievementRates[grade] / totalCount) * 100 : 0}
+                  sx={{
+                    backgroundColor: '#eee',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: scoreColorMap[grade],
+                    },
+                  }}
+                />
+              </Box>
+            ))}
+
+
+          <FilterPanel filters={filters} onChange={setFilters} />
+
+          <Box
+            sx={{
+              my: 2,
+              display: 'flex',
+              gap: 1,
+              overflowX: 'auto',          // ← はみ出したら横スクロール
+              px: 1,
+              pb: 0.5,
+              WebkitOverflowScrolling: 'touch',
+              '&::-webkit-scrollbar': { display: 'none' }, // モバイルでスクロールバー非表示（任意）
+            }}
+          >
+            <ToggleButtonGroup
+              value={gradeType}
+              exclusive
+              onChange={(e, v) => v && setGradeType(v)}
+              size="small"                 // ← モバイルで少しコンパクト
               sx={{
-                backgroundColor: '#eee',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: scoreColorMap[grade],
+                flexWrap: 'nowrap',        // ← 折り返さない
+                '& .MuiToggleButton-root': {
+                  px: { xs: 1.25, sm: 1.5 },
+                  py: { xs: 0.5, sm: 0.75 },
+                  fontSize: { xs: 12, sm: 13 },
+                  whiteSpace: 'nowrap',
                 },
               }}
-            />
+            >
+              <ToggleButton value="aaa_bpi">
+                {/* xsは短縮表記、sm以上はフル */}
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>AAA</Box>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>AAA難易度表</Box>
+              </ToggleButton>
+              <ToggleButton value="max_minus_bpi">
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>MAX-</Box>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>MAX-難易度表</Box>
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup
+              value={level}
+              exclusive
+              onChange={(e, v) => v && setLevel(v)}
+              size="small"
+              sx={{
+                flexWrap: 'nowrap',
+                '& .MuiToggleButton-root': {
+                  px: { xs: 1.25, sm: 1.5 },
+                  py: { xs: 0.5, sm: 0.75 },
+                  fontSize: { xs: 12, sm: 13 },
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
+              <ToggleButton value={11}>☆11</ToggleButton>
+              <ToggleButton value={12}>☆12</ToggleButton>
+            </ToggleButtonGroup>
           </Box>
-        ))}
 
+          {/* BPIセクションを表示 */}
+          {sortedRanges.map((range) => (
+            <Box key={range} sx={{ my: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: { xs: 15, sm: 18, md: 20 }, 
+                  lineHeight: 1.25,
+                  fontWeight: 800,
+                  letterSpacing: .2,
+                  mb: 1,
+                }}
+              >
+                {gradeType === 'aaa_bpi' ? 'AAA難易度' : 'MAX-難易度'}{' '}
+                <Box component="span" sx={{ display: 'inline' }}>
+                  BPI{range}〜{parseInt(range, 10) + 10}
+                </Box>
+              </Typography>
 
-      <FilterPanel filters={filters} onChange={setFilters} />
+              {/* xs=3カラム、sm/md=12カラム。xsは各アイテムxs=1で3列化 */}
+              <Grid
+                container
+                spacing={{ xs: 1, sm: 2 }}
+                columns={{ xs: 3, sm: 12, md: 12 }}
+              >
+                {sections[range].map((song) => {
+                  const key = `${song.id}_${song.difficulty}`;
+                  const title = titleMap[song.id];
+                  const displayTitle = `${title}[${song.difficulty}]`;
 
-      <Box sx={{ my: 2 }}>
-        <ToggleButtonGroup value={gradeType} exclusive onChange={(e, v) => v && setGradeType(v)} sx={{ ml: 2 }}>
-          <ToggleButton value="aaa_bpi">AAA難易度表</ToggleButton>
-          <ToggleButton value="max_minus_bpi">MAX-難易度表</ToggleButton>
-        </ToggleButtonGroup>
+                  const boxSx =
+                    song.score === 0
+                      ? { p: { xs: 1, sm: 1 }, border: '1px solid #ccc', borderRadius: 2, backgroundColor: 'white' }
+                      : { p: { xs: 1, sm: 1 }, border: `3px solid ${bpiGapColor(song.gap, false)}`, borderRadius: 2, backgroundColor: bpiGapColor(song.gap, true) };
 
-        <ToggleButtonGroup value={level} exclusive onChange={(e, v) => v && setLevel(v)} sx={{ ml: 2 }}>
-          <ToggleButton value={11}>☆11</ToggleButton>
-          <ToggleButton value={12}>☆12</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+                  return (
+                    <Grid item xs={1} sm={6} md={4} key={key} sx={{ minWidth: 0 }}>
+                      <Box sx={boxSx}>
+                        {/* タイトル：長さでフォント自動調整＆折り返し */}
+                        <Typography
+                          variant="body2"
+                          fontWeight="bold"
+                          sx={{
+                            fontSize: getTitleFontSize(displayTitle),
+                            whiteSpace: 'normal',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {displayTitle}
+                        </Typography>
 
-      {/* BPIセクションを表示 */}
-      {sortedRanges.map((range) => (
-        <Box key={range} sx={{ my: 2 }}>
-          <Typography variant="h6">{gradeType === 'aaa_bpi' ? 'AAA難易度' : 'MAX-難易度'} BPI{range}〜{parseInt(range) + 10}</Typography>
-          <Grid container spacing={2}>
-            {sections[range].map((song) => {
-              const key = `${song.id}_${song.difficulty}`;
-              return (
-                <Grid item xs={12} sm={6} md={4} key={key}>
-                  <Box sx={song.score === 0 ? { p: 1, border: '1px solid #ccc', borderRadius: 2, backgroundColor: 'white' } : { p: 1, border: `3px solid ${bpiGapColor(song.gap, false)}`, borderRadius: 2, backgroundColor: bpiGapColor(song.gap, true) }}>
-                    <Typography variant="body2" fontWeight="bold">
-                      {titleMap[song.id]}{`[${song.difficulty}]`}
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold">難{song[gradeType].toFixed(2)}</Typography>
-                    <Typography variant="body2">
-                      Grade: {song.grade} ({song.detailGrade})
-                    </Typography>
-                    <Typography variant="body2">EX Score: {song.score} ({(song.percentage * 100).toFixed(2)}%, BPI{song.bpi})</Typography>
+                        {/* 難易度値 */}
+                        <Typography
+                          variant="body2"
+                          fontWeight="bold"
+                          sx={{ fontSize: { xs: 9, sm: 13, md: 14 } }}
+                        >
+                          難{song[gradeType].toFixed(2)}
+                        </Typography>
 
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Box>
-      ))}
-    </Container>
+                        {/* Grade 行：スマホは短縮＆小さめ、タブレット以上は従来表示 */}
+                        <Typography
+                          sx={{
+                            display: { xs: 'none', sm: 'block' },
+                            fontSize: { sm: 13, md: 14 },
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          Grade: {song.grade} ({song.detailGrade})
+                        </Typography>
+                        <Typography
+                          sx={{
+                            display: { xs: 'block', sm: 'none' },
+                            fontSize: 9,
+                            lineHeight: 1.3,
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {song.grade} ({song.detailGrade})
+                        </Typography>
+
+                        {/* EX Score 行：スマホは短縮＆小数桁を減らす */}
+                        <Typography
+                          sx={{
+                            display: { xs: 'none', sm: 'block' },
+                            fontSize: { sm: 13, md: 14 },
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          EX Score: {song.score} ({(song.percentage * 100).toFixed(2)}%, BPI{song.bpi})
+                        </Typography>
+                        <Typography
+                          sx={{
+                            display: { xs: 'block', sm: 'none' },
+                            fontSize: 9,
+                            lineHeight: 1.3,
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {song.score} ({(song.percentage * 100).toFixed(1)}%)
+                        </Typography>
+                        <Typography
+                          sx={{
+                            display: { xs: 'block', sm: 'none' },
+                            fontSize: 9,
+                            lineHeight: 1.3,
+                            color: 'text.secondary',
+                          }}
+                        >
+                          BPI{song.bpi}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+          ))}
+
+        </Container>
+      </SectionCard>
+    </Page>
   );
 };
 

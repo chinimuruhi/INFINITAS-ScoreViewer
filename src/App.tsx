@@ -51,7 +51,7 @@ const AppShell: React.FC = () => {
     { text: 'CPI', path: '/cpi', mode: 'SP', icon: <GridViewRoundedIcon /> },
     { text: 'BPI', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon /> },
     { text: 'ereter.net', path: '/ereter', mode: 'DP', icon: <GridViewRoundedIcon /> },
-    { text: 'レーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon /> },
+    { text: 'ノーツレーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon /> },
     { text: '設定', path: '/settings', mode: 'both', icon: <SettingsRoundedIcon /> },
   ];
 
@@ -60,10 +60,10 @@ const AppShell: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const redirect = urlParams.get('redirect');
-    
+
     const params = new URLSearchParams(location.search);
     params.delete('redirect');
-    
+
     if (redirect) {
       navigate(`${redirect}?${params.toString()}`);
     }
@@ -86,10 +86,21 @@ const AppShell: React.FC = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800, letterSpacing: .3 }}>
-            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-              INFINITAS Score Viewer
+            <Link
+              to="/"
+              style={{ textDecoration: 'none', color: 'inherit', whiteSpace: 'nowrap' }}
+              title="INFINITAS Score Viewer"
+            >
+              {/* xs: INF SV / sm以上: INFINITAS Score Viewer */}
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }} aria-label="INFINITAS Score Viewer">
+                INF Score Viewer
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                INFINITAS Score Viewer
+              </Box>
             </Link>
           </Typography>
+
 
           {/* SP / DP Toggle */}
           <Box
@@ -198,7 +209,7 @@ const AppShell: React.FC = () => {
         </Box>
       </Drawer>
 
-      <Container sx={{ mt: 4, mb: 6 }}>
+      <Container maxWidth={false} sx={{ mt: 2, mb: 6, px: { xs: 1, sm: 2, md: 3 } }}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<CsvLoaderPage />} />

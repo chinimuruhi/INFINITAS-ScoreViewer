@@ -18,6 +18,8 @@ import {
 } from '@mui/material';
 import { getCurrentFormattedDate, getCurrentFormattedTime } from '../utils/dateUtils';
 import { appKeys } from '../constants/localStrageConstrains';
+import SectionCard from '../components/SectionCard';
+import { Page, PageHeader } from '../components/Page';
 
 
 const SettingsPage: React.FC = () => {
@@ -104,7 +106,7 @@ const SettingsPage: React.FC = () => {
       const text = await file.text();
       const json = JSON.parse(text);
 
-      if (!('user' in json) && !('data' in json) && !('diff' in json)&& !('timestamps' in json)) {
+      if (!('user' in json) && !('data' in json) && !('diff' in json) && !('timestamps' in json)) {
         throw new Error('ファイルが不正です。');
       }
       setImportJson(json);
@@ -138,7 +140,7 @@ const SettingsPage: React.FC = () => {
         const u = JSON.parse(localStorage.getItem('user') || 'null');
         setLoadedUser(u);
         setDjName(u?.djname || '');
-      } catch {}
+      } catch { }
 
       setSnack({ open: true, message: `インポートが完了しました`, severity: 'success' });
     } catch (err: any) {
@@ -166,95 +168,100 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ my: 4 }}>
-      <Typography variant="h4" gutterBottom>設定</Typography>
+    <Page>
+      <PageHeader compact title="設定" />
+      <SectionCard>
+        <Container maxWidth="md" sx={{ my: 4 }}>
 
-      {/* DJ Name */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>DJ Name</Typography>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-          <TextField
-            label="DJ Name"
-            value={djName}
-            onChange={(e) => setDjName(e.target.value)}
-            inputProps={{ maxLength: 20 }}
-            sx={{ flex: 1, minWidth: 240 }}
-          />
-          <Button variant="contained" onClick={handleSaveDjName}>保存</Button>
-        </Stack>
-      </Paper>
 
-      {/* Export / Import */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>データのエクスポート / インポート</Typography>
-        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-          定期的なバックアップを推奨します。お使いの端末のブラウザ(LocalStorage)に保存される形式となっており、キャッシュの削除等で消えてしまう可能性がございます。
-        </Typography>
+          {/* DJ Name */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>DJ Name</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+              <TextField
+                label="DJ Name"
+                value={djName}
+                onChange={(e) => setDjName(e.target.value)}
+                inputProps={{ maxLength: 20 }}
+                sx={{ flex: 1, minWidth: 240 }}
+              />
+              <Button variant="contained" onClick={handleSaveDjName}>保存</Button>
+            </Stack>
+          </Paper>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <Button variant="outlined" onClick={handleExport}>エクスポート (TXT)</Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,application/json,text/plain"
-            style={{ display: 'none' }}
-            onChange={handleImportFile}
-          />
-          <Button variant="contained" onClick={handleOpenImport}>インポート (TXT)</Button>
-        </Stack>
-      </Paper>
+          {/* Export / Import */}
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>データのエクスポート / インポート</Typography>
+            <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+              定期的なバックアップを推奨します。お使いの端末のブラウザ(LocalStorage)に保存される形式となっており、キャッシュの削除等で消えてしまう可能性がございます。
+            </Typography>
 
-      {/* Danger Zone */}
-      <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'error.light' }}>
-        <Typography variant="h6" gutterBottom color="error">データの削除</Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          登録したスコアデータを削除します。
-        </Typography>
-        <Button color="error" variant="contained" onClick={handleDelete}>
-          スコアデータを削除
-        </Button>
-      </Paper>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Button variant="outlined" onClick={handleExport}>エクスポート (TXT)</Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,application/json,text/plain"
+                style={{ display: 'none' }}
+                onChange={handleImportFile}
+              />
+              <Button variant="contained" onClick={handleOpenImport}>インポート (TXT)</Button>
+            </Stack>
+          </Paper>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={3000}
-        onClose={() => setSnack((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snack.severity} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
-          {snack.message}
-        </Alert>
-      </Snackbar>
+          {/* Danger Zone */}
+          <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'error.light' }}>
+            <Typography variant="h6" gutterBottom color="error">データの削除</Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              登録したスコアデータを削除します。
+            </Typography>
+            <Button color="error" variant="contained" onClick={handleDelete}>
+              スコアデータを削除
+            </Button>
+          </Paper>
 
-      {/* Import confirm dialog */}
-      <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>インポートの確認</DialogTitle>
-        <DialogContent dividers>
-          <DialogContentText sx={{ mb: 2 }}>
-            選択したファイルの内容を取り込みます。既存データは上書きされます。
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setImportDialogOpen(false)}>キャンセル</Button>
-          <Button variant="contained" onClick={applyImport} color="primary">インポートを実行</Button>
-        </DialogActions>
-      </Dialog>
+          {/* Snackbar */}
+          <Snackbar
+            open={snack.open}
+            autoHideDuration={3000}
+            onClose={() => setSnack((s) => ({ ...s, open: false }))}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert severity={snack.severity} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
+              {snack.message}
+            </Alert>
+          </Snackbar>
 
-      {/* Delete confirm dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>削除の確認</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            本当に登録データを削除しますか？ この操作は元に戻せません。
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>キャンセル</Button>
-          <Button onClick={applyDelete} color="error" variant="contained">削除する</Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+          {/* Import confirm dialog */}
+          <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="md" fullWidth>
+            <DialogTitle>インポートの確認</DialogTitle>
+            <DialogContent dividers>
+              <DialogContentText sx={{ mb: 2 }}>
+                選択したファイルの内容を取り込みます。既存データは上書きされます。
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setImportDialogOpen(false)}>キャンセル</Button>
+              <Button variant="contained" onClick={applyImport} color="primary">インポートを実行</Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Delete confirm dialog */}
+          <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+            <DialogTitle>削除の確認</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                本当に登録データを削除しますか？ この操作は元に戻せません。
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDeleteDialogOpen(false)}>キャンセル</Button>
+              <Button onClick={applyDelete} color="error" variant="contained">削除する</Button>
+            </DialogActions>
+          </Dialog>
+        </Container>
+      </SectionCard>
+    </Page>
   );
 };
 

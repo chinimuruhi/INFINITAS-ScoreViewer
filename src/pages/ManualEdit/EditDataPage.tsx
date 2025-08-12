@@ -8,6 +8,8 @@ import { useAppContext } from '../../context/AppContext';
 import { difficultyKey } from '../../constants/difficultyConstrains';
 import { simpleClearName } from '../../constants/clearConstrains';
 import { defaultMisscount } from '../../constants/defaultValues';
+import { Page, PageHeader } from '../../components/Page';
+import SectionCard from '../../components/SectionCard';
 
 
 const EditDataPage = () => {
@@ -108,97 +110,99 @@ const EditDataPage = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        {titleMap[songId] ? `${titleMap[songId]} [${difficulty}]` : '曲データが見つかりません'}
-      </Typography>
+    <Page>
+      <PageHeader compact title={titleMap[songId] ? `${titleMap[songId]} [${difficulty}]` : '曲データが見つかりません'} />
+      <SectionCard>
+        <Container sx={{ mt: 4 }}>
 
-      {titleMap[songId] ? (
-        <>
-          <FormControlLabel
-            control={<Checkbox checked={unlocked} onChange={(e) => setUnlocked(e.target.checked)} />}
-            label="INFINITAS解禁済み"
-            sx={{ my: 2 }}
-          />
-
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>モード選択</InputLabel>
-            <Select
-              value={mode}
-              onChange={(e) => setMode(e.target.value as 'SP' | 'DP')}
-              label="モード"
-            >
-              <MenuItem value="SP">SP</MenuItem>
-              <MenuItem value="DP">DP</MenuItem>
-            </Select>
-          </FormControl>
-
-          <TextField
-            label="スコア"
-            type="number"
-            value={score}
-            onChange={(e) => setScore(Number(e.target.value) || 0)}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>クリアタイプ</InputLabel>
-            <Select
-              value={cleartype}
-              onChange={(e) => setClearType(Number(e.target.value))}
-              label="クリアタイプ"
-            >
-
-
-              {simpleClearName.map((value, index) => (
-                <MenuItem key={index} value={index}>
-                  {value}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            label="ミスカウント（値なしの場合はdefaultMisscount）"
-            type="number"
-            value={misscount}
-            onChange={(e) => setMissCount(Number(e.target.value) === 0 || e.target.value === '' ? 0 : Number(e.target.value) || defaultMisscount)}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="プレイ日時"
-            type="datetime-local"
-            value={lastplay}
-            onChange={(e) => setLastPlay(convertDateToTimeString(e.target.value))}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-
-          <FormControlLabel
-            control={<Checkbox checked={forceUpdate} onChange={(e) => setForceUpdate(e.target.checked)} />}
-            label="強制更新（誤って登録したデータの修正用）"
-            sx={{ my: 2 }}
-          />
-          {forceUpdate && (
+          {titleMap[songId] ? (
             <>
-              <Alert severity="warning">
-                ランプ、スコア、BPが良くなっていない場合も更新します。更新差分は削除されますのでご注意ください。
-              </Alert>
-            </>
-          )}
+              <FormControlLabel
+                control={<Checkbox checked={unlocked} onChange={(e) => setUnlocked(e.target.checked)} />}
+                label="INFINITAS解禁済み"
+                sx={{ my: 2 }}
+              />
 
-          <Box mt={2}>
-            <Button variant="contained" onClick={handleSave}>
-              保存
-            </Button>
-          </Box>
-        </>
-      ) : (
-        <Typography variant="body1" color="error">
-          曲データが見つかりません。
-        </Typography>
-      )}
-    </Container>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>モード選択</InputLabel>
+                <Select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value as 'SP' | 'DP')}
+                  label="モード"
+                >
+                  <MenuItem value="SP">SP</MenuItem>
+                  <MenuItem value="DP">DP</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="スコア"
+                type="number"
+                value={score}
+                onChange={(e) => setScore(Number(e.target.value) || 0)}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>クリアタイプ</InputLabel>
+                <Select
+                  value={cleartype}
+                  onChange={(e) => setClearType(Number(e.target.value))}
+                  label="クリアタイプ"
+                >
+
+
+                  {simpleClearName.map((value, index) => (
+                    <MenuItem key={index} value={index}>
+                      {value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="ミスカウント（値なしの場合は99999）"
+                type="number"
+                value={misscount}
+                onChange={(e) => setMissCount(Number(e.target.value) === 0 || e.target.value === '' ? 0 : Number(e.target.value) || defaultMisscount)}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                label="プレイ日時"
+                type="datetime-local"
+                value={lastplay}
+                onChange={(e) => setLastPlay(convertDateToTimeString(e.target.value))}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+
+              <FormControlLabel
+                control={<Checkbox checked={forceUpdate} onChange={(e) => setForceUpdate(e.target.checked)} />}
+                label="強制更新（誤って登録したデータの修正用）"
+                sx={{ my: 2 }}
+              />
+              {forceUpdate && (
+                <>
+                  <Alert severity="warning">
+                    ランプ、スコア、BPが良くなっていない場合も更新します。更新差分は削除されますのでご注意ください。
+                  </Alert>
+                </>
+              )}
+
+              <Box mt={2}>
+                <Button variant="contained" onClick={handleSave}>
+                  保存
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <Typography variant="body1" color="error">
+              曲データが見つかりません。
+            </Typography>
+          )}
+        </Container>
+      </SectionCard>
+    </Page>
   );
 };
 
