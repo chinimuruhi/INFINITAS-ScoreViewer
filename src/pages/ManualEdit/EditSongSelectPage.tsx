@@ -7,6 +7,7 @@ import { generateSearchText } from '../../utils/titleUtils';
 import { difficultyKey } from '../../constants/difficultyConstrains';
 import { Page, PageHeader } from '../../components/Page';
 import SectionCard from '../../components/SectionCard';
+import { acInfDiffMap } from '../../constants/titleConstrains';
 
 const EditSongSelectPage = () => {
   const { mode } = useAppContext();
@@ -143,7 +144,7 @@ const EditSongSelectPage = () => {
                       },
                     }}
                   >
-                    <TableCell>{song.title} [{song.difficulty}]</TableCell>
+                    <TableCell>{song.title} [{song.difficulty}]{acInfDiffMap[song.id] ? ' (INFINITAS)': ''}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

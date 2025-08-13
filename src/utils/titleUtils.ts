@@ -1,4 +1,4 @@
-import { replaceTitle, replaceCharacters } from '../constants/replaceConstrains'
+import { replaceTitle, replaceCharacters } from '../constants/titleConstrains'
 
 async function fetchReplaceMap(): Promise<Record<string, string>> {
   const res = await fetch('https://chinimuruhi.github.io/IIDX-Data-Table/manual/replace-characters.json');

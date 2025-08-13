@@ -4,6 +4,7 @@ import { convertDateToTimeString, getCurrentFormattedTime } from './dateUtils'
 import { clearMapIDC, clearMapOfficial, clearMapReflux } from '../constants/clearConstrains';
 import { difficultyDetailKeys, difficultyKey } from '../constants/difficultyConstrains';
 import { defaultLastPlay, defaultMisscount } from '../constants/defaultValues';
+import { acInfDiffMap } from '../constants/titleConstrains';
 
 // 公式CSVのパース
 export async function parseOfficialCsv(text: string, mode: 'SP' | 'DP'): Promise<any> {
@@ -197,8 +198,15 @@ const mergeScore = (entry: any, oldData: any, oldTS: any, isReflux: boolean, las
 }
 
 // CSV読み込み時のLocalStrageデータとのマージ処理
-export async function mergeWithCSVEntries(parsed: any, isReflux: boolean) {
+export async function mergeWithCSVEntries(parsed: any, isReflux: boolean, isInf: boolean) {
   const idMap = await fetchNormalizedTitleMap();
+  const reversedacInfDiffMap: { [key: number]: any } =
+    Object.fromEntries(
+      Object.entries(acInfDiffMap).map(([infId, data]) => [
+        data.acID,                 // 新しいキー = acID
+        { ...data, infId: Number(infId) } // 元のIDを含めたオブジェクト
+      ])
+    );
 
   const existingDataRaw = localStorage.getItem('data') || '{}';
   const existingData = existingDataRaw ? JSON.parse(existingDataRaw) : {};
@@ -208,25 +216,32 @@ export async function mergeWithCSVEntries(parsed: any, isReflux: boolean) {
   const failedTitles: string[] = [];
   const mergedData = { ...existingData };
   const mergedTS = { ...existingTS };
+  let isInfId = false;
 
   for (const mode in parsed) {
     for (const rawTitle in parsed[mode]) {
       const normTitle = normalizeTitle(rawTitle);
-      const songId = idMap[normTitle];
-      if (!songId) {
+      const acSongId = idMap[normTitle];
+      let acInfDif;
+      if (!acSongId) {
         failedTitles.push(rawTitle);
         console.log(rawTitle + '(' + normTitle + ')の読み込みに失敗しました。');
         continue;
       }
-
-      if (!mergedData[mode]) mergedData[mode] = {};
-      if (!mergedData[mode][songId]) mergedData[mode][songId] = {};
-      if (!mergedTS[mode]) mergedTS[mode] = {};
-      if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
-
+      if (isInf) {
+        acInfDif = reversedacInfDiffMap[Number(acSongId)];
+      }
       const newEntries = parsed[mode][rawTitle];
       for (const difficulty in newEntries) {
+        let songId = acSongId;
         const entry = newEntries[difficulty];
+        if(acInfDif && acInfDif.changedChart.includes(mode + difficulty)){
+          songId = acInfDif.infId;
+        }
+        if (!mergedData[mode]) mergedData[mode] = {};
+        if (!mergedData[mode][songId]) mergedData[mode][songId] = {};
+        if (!mergedTS[mode]) mergedTS[mode] = {};
+        if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
         const oldData = mergedData[mode][songId][entry.difficulty] || {};
         const oldTS = mergedTS[mode][songId][entry.difficulty] || {};
         const lastplay = entry.lastplay ? entry.lastplay : getCurrentFormattedTime();
@@ -303,7 +318,7 @@ export function mergeWithJSONData(data: any, timestamps: any, isReflux: boolean)
 
 
 // ${id}_${diff}形式のオブジェクトに変換
-export const convertDataToIdDiffKey = (data: any, mode: 'SP' | 'DP')=> {
+export const convertDataToIdDiffKey = (data: any, mode: 'SP' | 'DP') => {
   const score: { [key: string]: number } = {};
   const clear: { [key: string]: number } = {};
   const misscount: { [key: string]: number } = {};

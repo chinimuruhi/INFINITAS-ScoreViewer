@@ -69,7 +69,7 @@ const CsvLoaderPage = () => {
         isReflux = true;
       }
 
-      const { data, diffs, timestamps, failedTitles } = await mergeWithCSVEntries(result, isReflux);
+      const { data, diffs, timestamps, failedTitles } = await mergeWithCSVEntries(result, isReflux, format !== 'official');
 
       if (failedTitles.length > 0) {
         setFailedTitles(failedTitles);
