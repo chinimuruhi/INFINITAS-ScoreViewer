@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "vite",
     "prod": "vite --mode production",
-    "build": "vite build --mode production",
-    "preview": "vite preview"
+    "build": "vite build --mode production && npm run prerender",
+    "prerender": "vite build --ssr src/prerender.tsx --outDir dist-ssr && node scripts/inject-prerender.mjs",
+    "preview": "vite preview --base /INFINITAS-ScoreViewer/ --port 3000 --strictPort"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -16,11 +17,13 @@
     "pako": "^2.1.0",
     "papaparse": "^5.5.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.22.3",
     "recharts": "^2.15.3"
   },
   "devDependencies": {
+    "@types/node": "^24.2.1",
     "@types/pako": "^2.0.3",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^18.2.21",
