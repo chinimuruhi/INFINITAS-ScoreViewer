@@ -120,6 +120,7 @@ const CpiPage = () => {
     return getLampAchiveCount(filteredSongs, clearData);
   }, [filteredSongs, clearData]);
 
+  /*
   const estimateCPI = useMemo(() => {
     const targets: { cpi: number; kojinsa: number; success: boolean }[] = [];
 
@@ -171,6 +172,7 @@ const CpiPage = () => {
     return refinedTheta;
 
   }, [songs, clearData]);
+  */
 
   const getTitleFontSize = (text: string) => {
     const len = text.length;
@@ -193,10 +195,13 @@ const CpiPage = () => {
           <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
+          
+          {/*
           <Typography variant="h6" gutterBottom>推定CPI(β): {estimateCPI.toFixed(2)}</Typography>
           <Typography variant="caption" color="text.secondary">
             cpi.makecir.comとは異なる推定方法であるため、あくまで目安として使用してください。（イローテーティングではなく最尤推定法を使用）
           </Typography>
+          */}
 
           <LampAchieveProgress stats={stats} totalCount={totalCount} />
           <FilterPanel filters={filters} onChange={setFilters} />
