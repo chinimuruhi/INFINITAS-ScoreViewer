@@ -103,7 +103,7 @@ const Index: React.FC = () => {
                     </Stack>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       INFINITAS ScoreViewerへようこそ！当サイトはINFINITASや手動入力のスコアデータでも、
-                      ACと同様の指標（CPIやBPIなど）で可視化することを目指しております。
+                      ACと同様の指標で可視化することを目指しております。
                     </Typography>
                     <Divider flexItem />
                     <Stack direction="row" spacing={1.5} alignItems="center">
@@ -137,7 +137,7 @@ const Index: React.FC = () => {
                 <div style={{ opacity: 0.9 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <CheckCircleRounded fontSize="small" sx={{ color: 'success.main' }} />
-                    <span>INFINITASでもACと同様の指標（CPIやBPI）を使用したい</span>
+                    <span>INFINITASでもACと同様の指標（BPIなど）を使用したい</span>
                   </Stack>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <CheckCircleRounded fontSize="small" sx={{ color: 'success.main' }} />
@@ -251,6 +251,10 @@ const Index: React.FC = () => {
           </Stack>
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">2025/8/13</Typography>
+                <Typography variant="body1">ノーツレーダー計算不具合修正、その他軽微な修正</Typography>
+              </Stack>
               <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2025/8/12</Typography>
                 <Typography variant="body1">サイト公開</Typography>

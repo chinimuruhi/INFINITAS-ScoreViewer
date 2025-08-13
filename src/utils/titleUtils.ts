@@ -1,4 +1,4 @@
-import { replaceMap } from '../constants/replaceCharacters'
+import { replaceTitle, replaceCharacters } from '../constants/replaceConstrains'
 
 async function fetchReplaceMap(): Promise<Record<string, string>> {
   const res = await fetch('https://chinimuruhi.github.io/IIDX-Data-Table/manual/replace-characters.json');
@@ -15,12 +15,17 @@ export async function fetchNormalizedTitleMap(): Promise<Record<string, string>>
 const remoteReplaceMap = await fetchReplaceMap();
 
 export const normalizeTitle = (title: string): string => {
+  for (const { from, to } of replaceTitle) {
+    if(title === from) {
+      title = to;
+    }
+  }
   for (const [from, to] of remoteReplaceMap['title']) {
     while (title.includes(from)) {
       title = title.replace(from, to);
     }
   }
-  for (const { from, to } of replaceMap) {
+  for (const { from, to } of replaceCharacters) {
     while (title.includes(from)) {
       title = title.replace(from, to);
     }

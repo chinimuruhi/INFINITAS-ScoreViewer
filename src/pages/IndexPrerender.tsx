@@ -41,7 +41,7 @@ const IndexPrerender: React.FC = () => {
         <div style={{ border:'1px solid #e0e0e0', borderRadius:12, padding:16 }}>
           <h2 style={{ marginTop:0 }}>こんな方におすすめ！</h2>
           <ul style={{ margin:'8px 0', paddingLeft:20, opacity:.9 }}>
-            <li>INFINITASでもACと同様の指標（CPIやBPI）を使用したい</li>
+            <li>INFINITASでもACと同様の指標（BPIなど）を使用したい</li>
             <li>ACとINFINITASをマージしたスコア状況が知りたい</li>
             <li>INFINITAS収録曲のランプ埋め状況を知りたい</li>
             <li>DPの難易度表に合わせたランプ状況を可視化したい</li>

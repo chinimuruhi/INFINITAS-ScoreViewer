@@ -161,7 +161,7 @@ const CsvLoaderPage = () => {
                 onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
               >
                 <MenuItem value="reflux">Reflux TSV</MenuItem>
-                <MenuItem value="idc">INFINITAS打鍵カウンタCSV (beta)</MenuItem>
+                <MenuItem value="idc">INFINITAS打鍵カウンタCSV (β)</MenuItem>
                 <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
               </Select>
             </FormControl>
@@ -187,7 +187,7 @@ const CsvLoaderPage = () => {
                   文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。CSVのダウンロードにはbeatmania IIDX プレミアムコース登録が必要となります。
                 </Typography>
                 <Alert severity="warning">
-                  CPI（<LinkComponent url="https://cpi.makecir.com/">https://cpi.makecir.com/</LinkComponent>）やBPI（<LinkComponent url="https://bpi.poyashi.me/">https://bpi.poyashi.me/</LinkComponent>）の統計の充実のため、公式HPからダウンロードしたCSVは必ず各サイトでもスコアデータの登録を行ってください。
+                  統計の充実のため、公式HPからダウンロードしたCSVは各本家サイトでもスコアデータの登録を行うことを推奨します。
                 </Alert>
               </>
             )}
