@@ -253,7 +253,8 @@ const Index: React.FC = () => {
             <CardContent>
               <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2025/8/13</Typography>
-                <Typography variant="body1">ノーツレーダー計算不具合修正、ACとINFで譜面が異なる楽曲対応、その他軽微な修正</Typography>
+                <Typography variant="body1">ノーツレーダー計算不具合修正、ACとINFで譜面が異なる楽曲対応(※1)、その他軽微な修正</Typography>
+                <Typography variant="body1">※1 該当楽曲を修正前にインポートされた方は手動修正をお願いいたします。</Typography>
               </Stack>
               <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2025/8/12</Typography>
