@@ -67,14 +67,34 @@ const RadarPage = () => {
 
         const top: Record<string, any[]> = {};
         const averages: Record<string, number> = {};
+
+        const pickBestPerSong = (items: any[], cat: string) => {
+          const map = new Map<string, any>();
+          for (const it of items) {
+            const v = it[cat] ?? 0;
+            if (!v) continue;
+            const prev = map.get(it.id);
+            if (!prev || v > (prev[cat] ?? 0)) {
+              map.set(it.id, it);
+            }
+          }
+          return Array.from(map.values());
+        };
+
         chartCategories.forEach(cat => {
-          const sorted = [...songRadarResults].sort((a, b) => (b[cat] ?? 0) - (a[cat] ?? 0)).slice(0, 10);
-          top[cat] = sorted;
-          averages[cat] = parseFloat((sorted.reduce((sum, cur) => sum + (cur[cat] ?? 0), 0) / 10).toFixed(2));
+          const deduped = pickBestPerSong(songRadarResults, cat);
+
+          deduped.sort((a, b) => (b[cat] ?? 0) - (a[cat] ?? 0));
+          const top10 = deduped.slice(0, 10);
+
+          top[cat] = top10;
+          const denom = top10.length || 1;
+          averages[cat] = Number(
+            (top10.reduce((sum, cur) => sum + (cur[cat] ?? 0), 0) / denom).toFixed(2)
+          );
         });
 
-        const reordered = ['NOTES', 'PEAK', 'SCRATCH', 'SOFLAN', 'CHARGE', 'CHORD'];
-        const radarAverage = reordered.map(cat => ({
+        const radarAverage = chartCategories.map(cat => ({
           subject: cat,
           A: averages[cat]
         }));
