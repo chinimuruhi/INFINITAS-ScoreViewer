@@ -15,7 +15,7 @@ import SectionCard from '../components/SectionCard';
 const CsvLoaderPage = () => {
   const navigate = useNavigate();
   const { mode, setMode } = useAppContext();
-  const [format, setFormat] = useState<'official' | 'reflux' | 'idc'>('reflux');
+  const [format, setFormat] = useState<'official' | 'reflux' | 'idc'>('idc');
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
@@ -160,8 +160,8 @@ const CsvLoaderPage = () => {
                 label="形式"
                 onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
               >
-                <MenuItem value="reflux">Reflux TSV</MenuItem>
                 <MenuItem value="idc">INFINITAS打鍵カウンタCSV (β)</MenuItem>
+                <MenuItem value="reflux">Reflux TSV</MenuItem>
                 <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
               </Select>
             </FormControl>
@@ -214,6 +214,9 @@ const CsvLoaderPage = () => {
                 <Typography variant="body2" sx={{ mb: 2 }}>
                   文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
                 </Typography>
+                <Alert severity="warning">
+                  読み込み形式としては対応しておりますが、Refluxの使用を推奨するものではありません。使用は自己責任でお願いいたします。
+                </Alert>
               </>
             )}
           </Box>
