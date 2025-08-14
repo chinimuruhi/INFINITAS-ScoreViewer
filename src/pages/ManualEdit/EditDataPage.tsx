@@ -1,7 +1,7 @@
 // EditDataPage.tsx
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Alert } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Container, Typography, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Alert, Snackbar } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import { getCurrentFormattedDate, convertDateToTimeString, getCurrentFormattedTime } from '../../utils/dateUtils';
 import { mergeWithJSONData } from '../../utils/scoreDataUtils';
 import { useAppContext } from '../../context/AppContext';
@@ -10,12 +10,17 @@ import { simpleClearName } from '../../constants/clearConstrains';
 import { defaultMisscount } from '../../constants/defaultValues';
 import { Page, PageHeader } from '../../components/Page';
 import SectionCard from '../../components/SectionCard';
+import { acInfDiffMap } from '../../constants/titleConstrains';
 
 
 const EditDataPage = () => {
   const { mode, setMode } = useAppContext();
   const { songIdRaw, difficultyRaw } = useParams<{ songIdRaw: string, difficultyRaw: string }>();
-  const navigate = useNavigate();
+  const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const [songId, setsongId] = useState<number>(0);
   const [difficulty, setDifficulty] = useState<string>('');
@@ -105,13 +110,12 @@ const EditDataPage = () => {
       localStorage.setItem('timestamps', JSON.stringify(newData.timestamps));
       localStorage.setItem('user', JSON.stringify({ djname: user.djName, lastupdated: getCurrentFormattedDate() }));
     }
-    alert('データを保存しました');
-    navigate('/edit');
+    setSnack({ open: true, message: '楽曲情報を保存しました。', severity: 'success' });
   };
 
   return (
     <Page>
-      <PageHeader compact title={titleMap[songId] ? `${titleMap[songId]} [${difficulty}]` : '曲データが見つかりません'} />
+      <PageHeader compact title={titleMap[songId] ? `${titleMap[songId]} [${difficulty}]${acInfDiffMap[songId] ? ' (INFINITAS)': ''}` : '曲データが見つかりません'} />
       <SectionCard>
         <Container sx={{ mt: 4 }}>
 
@@ -200,6 +204,17 @@ const EditDataPage = () => {
               曲データが見つかりません。
             </Typography>
           )}
+
+          <Snackbar
+            open={snack.open}
+            autoHideDuration={3000}
+            onClose={() => setSnack((s) => ({ ...s, open: false }))}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert severity={snack.severity} onClose={() => setSnack((s) => ({ ...s, open: false }))}>
+              {snack.message}
+            </Alert>
+          </Snackbar>
         </Container>
       </SectionCard>
     </Page>

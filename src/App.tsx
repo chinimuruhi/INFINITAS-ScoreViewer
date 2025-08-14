@@ -13,6 +13,7 @@ import DifferenceRoundedIcon from '@mui/icons-material/DifferenceRounded';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import RadarRoundedIcon from '@mui/icons-material/RadarRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import TableRowsIcon from '@mui/icons-material/TableRows';
 
 import { useAppContext } from './context/AppContext';
 
@@ -28,6 +29,7 @@ import RadarPage from './pages/RadarPage';
 import SettingsPage from './pages/SettingsPage';
 import EditSongSelectPage from './pages/ManualEdit/EditSongSelectPage';
 import EditDataPage from './pages/ManualEdit/EditDataPage';
+import SongTablePage from './pages/SongTablePage';
 import Index from './pages/Index';
 
 type VisibleMode = 'SP' | 'DP' | 'both';
@@ -52,6 +54,7 @@ const AppShell: React.FC = () => {
     { text: 'BPI', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon /> },
     { text: 'ereter.net', path: '/ereter', mode: 'DP', icon: <GridViewRoundedIcon /> },
     { text: 'ノーツレーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon /> },
+    { text: '楽曲一覧', path: '/songtable', mode: 'both', icon: <TableRowsIcon /> },
     { text: '設定', path: '/settings', mode: 'both', icon: <SettingsRoundedIcon /> },
   ];
 
@@ -256,6 +259,7 @@ const AppShell: React.FC = () => {
             }
           />
           <Route path="/radar" element={<RadarPage />} />
+          <Route path="/songtable" element={<SongTablePage/>} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/edit" element={<EditSongSelectPage />} />
           <Route path="/edit/:songIdRaw/:difficultyRaw" element={<EditDataPage />} />

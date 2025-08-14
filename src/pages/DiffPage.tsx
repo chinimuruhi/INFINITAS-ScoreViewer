@@ -26,6 +26,7 @@ import { defaultMisscount } from '../constants/defaultValues';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import { acInfDiffMap } from '../constants/titleConstrains';
 
 const urlLengthMax = 4088;
 
@@ -85,10 +86,10 @@ const DiffPage = () => {
         setUser(storedUser);
         setIsShared(false);
       }
-      if(spUpdateCount >= dpUpdateCount){
-          setMode('SP');
-        }else{
-          setMode('DP');
+      if (spUpdateCount >= dpUpdateCount) {
+        setMode('SP');
+      } else {
+        setMode('DP');
       }
     } catch (error) {
       console.error('データの読み込みエラー:', error);
@@ -290,17 +291,17 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]</TableCell>
-                          <TableCell sx={{ backgroundColor: row.colorBefore, textAlign: 'center' }}>{simpleClearName[row.before]}</TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorBefore }}>{simpleClearName[row.before]}</Box></TableCell>
                           <TableCell sx={{ px: 0, textAlign: 'center' }}>→</TableCell>
-                          <TableCell sx={{ backgroundColor: row.colorAfter, textAlign: 'center' }}>{simpleClearName[row.after]}</TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorAfter }}>{simpleClearName[row.after]}</Box></TableCell>
                         </TableRow>
 
                         {/* Mobile */}
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }}>
                           <TableCell colSpan={5} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}] ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: 12 }}>
                               <Box sx={{ px: 1, borderRadius: 1, bgcolor: row.colorBefore }}>{simpleClearName[row.before]}</Box>
@@ -338,7 +339,7 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]</TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
                           <TableCell>{getGrade(row.afterRate)} ({getDetailGrade(row.afterScore, row.notes)})</TableCell>
                           <TableCell>{row.afterScore} ({(row.afterRate * 100).toFixed(2)}%)</TableCell>
                           <TableCell>+{row.diff}</TableCell>
@@ -348,7 +349,7 @@ const DiffPage = () => {
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }}>
                           <TableCell colSpan={5} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}] ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 1.25, color: 'text.secondary', fontSize: 12 }}>
                               <span>{getGrade(row.afterRate)} ({getDetailGrade(row.afterScore, row.notes)})</span>
@@ -385,7 +386,7 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]</TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{row.afterMisscount}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{row.diff !== defaultMisscount ? row.diff : ''}</TableCell>
                         </TableRow>
@@ -394,7 +395,7 @@ const DiffPage = () => {
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }}>
                           <TableCell colSpan={4} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}] ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', gap: 1.25, color: 'text.secondary', fontSize: 12 }}>
                               <span>BP: {row.afterMisscount}</span>
