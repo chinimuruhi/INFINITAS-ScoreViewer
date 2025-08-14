@@ -14,6 +14,7 @@ import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import { useNavigate } from 'react-router-dom';
 
 const DpTablePage = () => {
   const { mode, filters, setFilters } = useAppContext();
@@ -28,6 +29,7 @@ const DpTablePage = () => {
   const [loading, setLoading] = useState(true);
   const [activeRange, setActiveRange] = useState<number>(12);
   const [tabRanges, setTabRanges] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -161,15 +163,9 @@ const DpTablePage = () => {
                             wordBreak: 'break-word',
                             lineHeight: 1.35,
                           }}
+                          onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
                         >
-                          <a
-                            href={detailLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ textDecoration: 'none', color: 'inherit' }}
-                          >
                             {displayTitle}
-                          </a>
                         </Typography>
 
                         <Typography variant="caption" display="block">

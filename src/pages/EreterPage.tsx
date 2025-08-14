@@ -13,6 +13,8 @@ import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import { useNavigate } from 'react-router-dom';
+import { difficultyKey } from '../constants/difficultyConstrains';
 
 const EreterPage = () => {
   const { mode, filters, setFilters } = useAppContext();
@@ -26,6 +28,7 @@ const EreterPage = () => {
   const [chartInfo, setChartInfo] = useState<any>({});
   const [konamiInfInfo, setKonamiInfInfo] = useState<any>({});
   const [songInfo, setSongInfo] = useState<any>({});
+  const navigate = useNavigate();
   //const [estimatedSkill, setEstimatedSkill] = useState<number | null>(null);
 
   useEffect(() => {
@@ -227,6 +230,7 @@ const EreterPage = () => {
                               wordBreak: 'break-word',
                               lineHeight: 1.35,
                             }}
+                            onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
                           >
                             {displayTitle}
                           </Typography>

@@ -13,6 +13,8 @@ import { clearColorMap } from '../constants/colorConstrains';
 import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
+import { useNavigate } from 'react-router-dom';
+import { difficultyKey } from '../constants/difficultyConstrains';
 
 const Sp12TablePage = () => {
   const { mode, filters, setFilters } = useAppContext();
@@ -27,6 +29,7 @@ const Sp12TablePage = () => {
   const [chartInfo, setChartInfo] = useState<any>({});
   const [songInfo, setSongInfo] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,6 +160,7 @@ const Sp12TablePage = () => {
                             wordBreak: 'break-word',
                             lineHeight: 1.35,
                           }}
+                          onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
                         >
                           {title} {diffLabel}
                         </Typography>

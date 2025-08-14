@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop, LinearProgress
+  Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop
 } from '@mui/material';
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
@@ -14,6 +14,9 @@ import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
+import { useNavigate } from 'react-router-dom';
+import { difficultyKey } from '../constants/difficultyConstrains';
+
 
 const CpiPage = () => {
   const { mode, filters, setFilters } = useAppContext();
@@ -27,6 +30,7 @@ const CpiPage = () => {
   const [clearData, setClearData] = useState<{ [key: string]: number }>({});
   const [missData, setMissData] = useState<{ [key: string]: number }>({});
   const [unlockedData, setUnlockedData] = useState<{ [key: string]: boolean }>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -251,15 +255,9 @@ const CpiPage = () => {
                               wordBreak: 'break-word',
                               lineHeight: 1.35,
                             }}
+                            onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
                           >
-                            <a
-                              href={`https://cpi.makecir.com/scores/view/${song?.cpi_id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ textDecoration: 'none', color: 'inherit' }}
-                            >
-                              {displayTitle}
-                            </a>
+                            {displayTitle}
                           </Typography>
 
                           {cpiValue !== -2 && (
