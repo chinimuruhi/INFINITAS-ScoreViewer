@@ -23,6 +23,7 @@ import { generateSearchText } from '../utils/titleUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { acInfDiffMap } from '../constants/titleConstrains';
+import { calculateBpi } from '../utils/bpiUtils';
 
 type SongRow = {
   id: string;
@@ -34,7 +35,7 @@ type SongRow = {
   normalizedTitle: string;
 };
 
-type SortKey = 'lv' | 'title' | 'cleartype' | 'grade' | 'score' | 'bp';
+type SortKey = 'lv' | 'title' | 'cleartype' | 'grade' | 'score' | 'bp' | 'bpi';
 type SortDir = 'asc' | 'desc';
 
 const SongTablePage: React.FC = () => {
@@ -43,7 +44,6 @@ const SongTablePage: React.FC = () => {
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [chartInfo, setChartInfo] = useState<any>({});
   const [songInfo, setSongInfo] = useState<any>({});
   const [konamiInfInfo, setKonamiInfInfo] = useState<any>({});
@@ -52,6 +52,7 @@ const SongTablePage: React.FC = () => {
   const [scoreData, setScoreData] = useState<Record<string, number>>({});
   const [missData, setMissData] = useState<Record<string, number>>({});
   const [unlockedData, setUnlockedData] = useState<Record<string, boolean>>({});
+  const [bpiInfo, setBpiInfo] = useState<any>({});
 
   const [songs, setSongs] = useState<SongRow[]>([]);
   const [songSearch, setSongSearch] = useState('');
@@ -68,13 +69,13 @@ const SongTablePage: React.FC = () => {
       prev.key === key
         ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
         : {
-            key,
-            direction:
-              key === 'bp' ? 'asc' :
+          key,
+          direction:
+            key === 'bp' ? 'asc' :
               key === 'lv' ? 'desc' :
-              key === 'score' ? 'desc' :
-              key === 'grade' ? 'desc' : 'asc',
-          }
+                key === 'score' ? 'desc' :
+                  key === 'grade' ? 'desc' : 'asc',
+        }
     );
   };
   const handleSortKeyChange = (key: SortKey) => {
@@ -82,10 +83,10 @@ const SongTablePage: React.FC = () => {
       key,
       direction:
         key === 'bp' ? 'asc' :
-        key === 'lv' ? 'desc' :
-        key === 'score' ? 'desc' :
-        key === 'grade' ? 'desc' :
-        prev.direction,
+          key === 'lv' ? 'desc' :
+            key === 'score' ? 'desc' :
+              key === 'grade' ? 'desc' :
+                prev.direction,
     }));
   };
   const toggleSortDir = () =>
@@ -99,19 +100,26 @@ const SongTablePage: React.FC = () => {
           titleRes,
           songInfoGz,
           chartGz,
-          konamiRes
+          konamiRes,
+          bpiSpInfo,
+          bpiDpInfo,
         ] = await Promise.all([
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then(r => r.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/song-info.json.gz').then(r => r.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(r => r.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then(r => r.json()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/sp_dict.json').then((res) => res.json()),
+          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/dp_dict.json').then((res) => res.json()),
         ]);
 
-        setTitleMap(titleRes);
         setSongInfo(JSON.parse(new TextDecoder().decode(ungzip(songInfoGz))));
         const chartJson = JSON.parse(new TextDecoder().decode(ungzip(chartGz)));
         setChartInfo(chartJson);
         setKonamiInfInfo(konamiRes);
+        setBpiInfo({
+          'SP': bpiSpInfo,
+          'DP': bpiDpInfo
+        });
 
         const local = JSON.parse(localStorage.getItem('data') || '{}');
         const { clear, score, misscount, unlocked } = convertDataToIdDiffKey(local, mode);
@@ -190,6 +198,12 @@ const SongTablePage: React.FC = () => {
     if (bp == null || bp === defaultMisscount) return Number.POSITIVE_INFINITY;
     return bp;
   };
+  const getBPI = (id: string, difficulty: string) => {
+    const bpiInfoEntry = bpiInfo?.[mode]?.[id]?.[difficulty];
+    const score = getScore(id, difficulty);
+    const bpi = bpiInfoEntry && score ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, score, bpiInfoEntry.coef) : -99;
+    return bpi ? bpi : -99
+  }
 
   const handleSelectSong = (songId: string, difficultyIndex: string) => {
     navigate(`/edit/${songId}/${difficultyIndex}`);
@@ -226,6 +240,11 @@ const SongTablePage: React.FC = () => {
         case 'bp': {
           const ba = getBP(a.id, a.difficulty);
           const bb = getBP(b.id, b.difficulty);
+          return cmpNum(ba, bb);
+        }
+        case 'bpi': {
+          const ba = getBPI(a.id, a.difficulty);
+          const bb = getBPI(b.id, b.difficulty);
           return cmpNum(ba, bb);
         }
         default:
@@ -266,6 +285,17 @@ const SongTablePage: React.FC = () => {
     if (bp == null || bp === defaultMisscount) return '-';
     return String(bp);
   };
+
+  const renderBPI = (id: string, difficulty: string) => {
+    const bpiInfoEntry = bpiInfo?.[mode]?.[id]?.[difficulty];
+    const score = getScore(id, difficulty);
+    const bpi = bpiInfoEntry && score ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, score, bpiInfoEntry.coef) : NaN;
+    if (Number.isNaN(bpi)){
+      return ''
+    }else{
+      return bpi
+    }
+  }
 
   const handleLevelChange = (e: SelectChangeEvent<string>) => {
     setSelectedLevel(Number(e.target.value));
@@ -311,6 +341,9 @@ const SongTablePage: React.FC = () => {
                   <MenuItem value="lv">Level</MenuItem>
                   <MenuItem value="title">Title</MenuItem>
                   <MenuItem value="cleartype">Lamp</MenuItem>
+                  {selectedLevel >= 11 && 
+                    <MenuItem value="bpi">BPI</MenuItem>
+                  }
                   <MenuItem value="grade">Grade</MenuItem>
                   <MenuItem value="score">Score</MenuItem>
                   <MenuItem value="bp">BP</MenuItem>
@@ -336,6 +369,11 @@ const SongTablePage: React.FC = () => {
                   <TableCell sx={{ cursor: 'pointer', textAlign: 'center' }} onClick={() => handleSort('cleartype')}>
                     Lamp
                   </TableCell>
+                  {selectedLevel >= 11 && 
+                    <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('bpi')}>
+                      BPI
+                    </TableCell>
+                  }
                   <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('grade')}>
                     Grade
                   </TableCell>
@@ -365,6 +403,9 @@ const SongTablePage: React.FC = () => {
                       <TableCell sx={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
                         {renderCleartype(s.id, s.difficulty)}
                       </TableCell>
+                      {selectedLevel >= 11 && 
+                        <TableCell>{renderBPI(s.id, s.difficulty)}</TableCell>
+                      }
                       <TableCell>{renderGrade(s.id, s.difficulty, s.notes)}</TableCell>
                       <TableCell>{renderScore(s.id, s.difficulty, s.notes)}</TableCell>
                       <TableCell>{renderBP(s.id, s.difficulty)}</TableCell>
@@ -394,6 +435,10 @@ const SongTablePage: React.FC = () => {
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             {renderCleartype(s.id, s.difficulty)}
+                          </Box>
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <span>BPI{renderBPI(s.id, s.difficulty)}</span>
                           </Box>
 
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
