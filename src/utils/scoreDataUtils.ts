@@ -267,31 +267,25 @@ export async function mergeWithCSVEntries(parsed: any, isReflux: boolean, isInf:
 }
 
 // JSON変更時のLocalStrageデータとのマージ処理
-export function mergeWithJSONData(data: any, timestamps: any, isReflux: boolean) {
-  const existingDataRaw = localStorage.getItem('data') || '{}';
-  const existingData = existingDataRaw ? JSON.parse(existingDataRaw) : {};
-  const existingTSRaw = localStorage.getItem('timestamps') || '{}';
-  const existingTS = existingTSRaw ? JSON.parse(existingTSRaw) : {};
-  const existingDiffRaw = localStorage.getItem('diff') || '{}';
-  const existingDiff = existingDataRaw ? JSON.parse(existingDiffRaw) : {};
-  const mergedData = { ...existingData };
-  const mergedTS = { ...existingTS };
-  const mergedDiff = { ...existingDiff };
+export function mergeWithJSONData(oldData: any, newData: any, oldTimestamps: any, newTimestamps: any, oldDiff: any, isReflux: boolean) {
+  const mergedData = { ...oldData };
+  const mergedTS = { ...oldTimestamps };
+  const mergedDiff = { ...oldDiff };
 
-  for (const mode in data) {
-    for (const songId in data[mode]) {
+  for (const mode in newData) {
+    for (const songId in newData[mode]) {
 
       if (!mergedData[mode]) mergedData[mode] = {};
       if (!mergedData[mode][songId]) mergedData[mode][songId] = {};
       if (!mergedTS[mode]) mergedTS[mode] = {};
       if (!mergedTS[mode][songId]) mergedTS[mode][songId] = {};
 
-      const newEntries = data[mode][songId];
+      const newEntries = newData[mode][songId];
       for (const difficulty in newEntries) {
         const entry = newEntries[difficulty];
         const oldData = mergedData[mode][songId][difficulty] || {};
         const oldTS = mergedTS[mode][songId][difficulty] || {};
-        const lastplay = timestamps?.[mode]?.[songId]?.[difficulty]?.lastplay ? timestamps[mode][songId][difficulty].lastplay : getCurrentFormattedTime();
+        const lastplay = newTimestamps?.[mode]?.[songId]?.[difficulty]?.lastplay ? newTimestamps[mode][songId][difficulty].lastplay : getCurrentFormattedTime();
 
         const merged = mergeScore(entry, oldData, oldTS, isReflux, lastplay);
 

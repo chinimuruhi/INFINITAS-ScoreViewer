@@ -89,25 +89,28 @@ const EditDataPage = () => {
       localStorage.setItem('timestamps', JSON.stringify(newTimeStamp));
     } else {
       // 通常更新
-      const saveData: any = {};
-      saveData[mode] = {};
-      saveData[mode][songId] = {};
-      saveData[mode][songId][difficulty] = {
+      const newData: any = {};
+      newData[mode] = {};
+      newData[mode][songId] = {};
+      newData[mode][songId][difficulty] = {
         score,
         cleartype,
         misscount,
         unlocked
       };
-      const saveTimestamp: any = {};
-      saveTimestamp[mode] = {};
-      saveTimestamp[mode][songId] = {};
-      saveTimestamp[mode][songId][difficulty] = {
+      const newTimestamp: any = {};
+      newTimestamp[mode] = {};
+      newTimestamp[mode][songId] = {};
+      newTimestamp[mode][songId][difficulty] = {
         lastplay
       }
-      const newData = mergeWithJSONData(saveData, saveTimestamp, true);
-      localStorage.setItem('data', JSON.stringify(newData.data));
-      localStorage.setItem('diff', JSON.stringify(newData.diffs));
-      localStorage.setItem('timestamps', JSON.stringify(newData.timestamps));
+      const oldData = JSON.parse(localStorage.getItem('data') || '{}');
+      const oldTimestamps = JSON.parse(localStorage.getItem('timestamps') || '{}');
+      const oldDiff = JSON.parse(localStorage.getItem('diff') || '{}');
+      const margedData = mergeWithJSONData(oldData, newData, oldTimestamps, newTimestamp, oldDiff, true);
+      localStorage.setItem('data', JSON.stringify(margedData.data));
+      localStorage.setItem('diff', JSON.stringify(margedData.diffs));
+      localStorage.setItem('timestamps', JSON.stringify(margedData.timestamps));
       localStorage.setItem('user', JSON.stringify({ djname: user.djName, lastupdated: getCurrentFormattedDate() }));
     }
     setSnack({ open: true, message: '楽曲情報を保存しました。', severity: 'success' });
