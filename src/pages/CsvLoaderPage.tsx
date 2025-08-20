@@ -258,6 +258,14 @@ const CsvLoaderPage = () => {
               <Box>
                 {failedTitles.map((title, i) => <div key={i}>{title}</div>)}
               </Box>
+              <Alert severity="warning">
+                <Typography variant="body2" gutterBottom>
+                  新曲の読み込みの対応についてはtextage様に追加されてから最大一週間程度かかります。
+                </Typography>
+                <Typography variant="body2">
+                  当サイトの楽曲リストは毎週水曜午前10時に更新を行っておりますので、更新後再度読み込みをお願いいたします。
+                </Typography>
+              </Alert>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleReport}>報告する</Button>

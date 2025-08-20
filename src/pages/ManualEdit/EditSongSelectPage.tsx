@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Container, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Container, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ungzip } from 'pako';
 import { useAppContext } from '../../context/AppContext';
@@ -122,6 +122,15 @@ const EditSongSelectPage = () => {
             </Select>
           </FormControl>
 
+          <Alert severity="warning">
+            <Typography variant="body2" gutterBottom>
+              新曲の読み込みの対応についてはtextage様に追加されてから最大一週間程度かかります。
+            </Typography>
+            <Typography variant="body2">
+              当サイトの楽曲リストは毎週水曜午前10時に更新を行っておりますので、更新後再度読み込みをお願いいたします。
+            </Typography>
+          </Alert>
+
           <TableContainer sx={{ mb: 3 }}>
             <Table>
               <TableHead>
@@ -144,7 +153,7 @@ const EditSongSelectPage = () => {
                       },
                     }}
                   >
-                    <TableCell>{song.title} [{song.difficulty}]{acInfDiffMap[song.id] ? ' (INFINITAS)': ''}</TableCell>
+                    <TableCell>{song.title} [{song.difficulty}]{acInfDiffMap[song.id] ? ' (INFINITAS)' : ''}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
