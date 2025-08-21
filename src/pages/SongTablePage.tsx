@@ -33,6 +33,11 @@ type SongRow = {
   notes: number;
   title: string;
   normalizedTitle: string;
+  lamp: number,
+  score: number,
+  rate: number,
+  bpi: number,
+  bp: number
 };
 
 type SortKey = 'lv' | 'title' | 'cleartype' | 'grade' | 'score' | 'bp' | 'bpi';
@@ -116,17 +121,18 @@ const SongTablePage: React.FC = () => {
         const chartJson = JSON.parse(new TextDecoder().decode(ungzip(chartGz)));
         setChartInfo(chartJson);
         setKonamiInfInfo(konamiRes);
-        setBpiInfo({
+        const bpiInfoRes = {
           'SP': bpiSpInfo,
           'DP': bpiDpInfo
-        });
+        };
+        setBpiInfo(bpiInfoRes);
 
         const local = JSON.parse(localStorage.getItem('data') || '{}');
-        const { clear, score, misscount, unlocked } = convertDataToIdDiffKey(local, mode);
-        setClearData(clear);
-        setScoreData(score ?? {});
-        setMissData(misscount);
-        setUnlockedData(unlocked);
+        const { clear: clearRes, score: scoreRes, misscount: missRes, unlocked: unlockedRes } = convertDataToIdDiffKey(local, mode);
+        setClearData(clearRes);
+        setScoreData(scoreRes ?? {});
+        setMissData(missRes);
+        setUnlockedData(unlockedRes);
 
         const list: SongRow[] = [];
         for (const id of Object.keys(titleRes)) {
@@ -141,6 +147,15 @@ const SongTablePage: React.FC = () => {
 
             const notes = c.notes?.[mode.toLowerCase()]?.[diffIndex] ?? 0;
             const title = titleRes[id] ?? id;
+
+            const key = `${id}_${diff}`;
+            const lamp = clearRes[key] ?? 0;
+            const score = scoreRes[key] ?? 0;
+            const rate = getPercentage(score, notes);
+            const bp = missRes[key] ?? defaultMisscount;
+            const bpiInfoEntry = bpiInfoRes?.[mode]?.[id]?.[diff];
+            let bpi = bpiInfoEntry && score ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, score, bpiInfoEntry.coef) : NaN;
+            bpi = bpi ? bpi : NaN;
             list.push({
               id,
               difficulty: diff,
@@ -149,6 +164,11 @@ const SongTablePage: React.FC = () => {
               notes,
               title,
               normalizedTitle: generateSearchText(title),
+              lamp,
+              score,
+              rate,
+              bp,
+              bpi
             });
           }
         }
@@ -180,31 +200,6 @@ const SongTablePage: React.FC = () => {
       });
   }, [songs, songSearch, selectedLevel, filters, clearData, chartInfo, konamiInfInfo, unlockedData, songInfo]);
 
-  const getLamp = (id: string, difficulty: string) => {
-    const key = `${id}_${difficulty}`;
-    return clearData[key] ?? 0;
-  };
-  const getScore = (id: string, difficulty: string) => {
-    const key = `${id}_${difficulty}`;
-    return scoreData[key] ?? 0;
-  };
-  const getRate = (id: string, difficulty: string, notes: number) => {
-    const score = getScore(id, difficulty);
-    return getPercentage(score, notes);
-  };
-  const getBP = (id: string, difficulty: string) => {
-    const key = `${id}_${difficulty}`;
-    const bp = missData[key];
-    if (bp == null || bp === defaultMisscount) return Number.POSITIVE_INFINITY;
-    return bp;
-  };
-  const getBPI = (id: string, difficulty: string) => {
-    const bpiInfoEntry = bpiInfo?.[mode]?.[id]?.[difficulty];
-    const score = getScore(id, difficulty);
-    const bpi = bpiInfoEntry && score ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, score, bpiInfoEntry.coef) : -99;
-    return bpi ? bpi : -99
-  }
-
   const handleSelectSong = (songId: string, difficultyIndex: string) => {
     navigate(`/edit/${songId}/${difficultyIndex}`);
   };
@@ -222,80 +217,24 @@ const SongTablePage: React.FC = () => {
           return cmpNum(a.level, b.level);
         case 'title':
           return cmpStr(a.title, b.title);
-        case 'cleartype': {
-          const la = getLamp(a.id, a.difficulty);
-          const lb = getLamp(b.id, b.difficulty);
-          return cmpNum(la, lb);
-        }
-        case 'grade': {
-          const ra = getRate(a.id, a.difficulty, a.notes);
-          const rb = getRate(b.id, b.difficulty, b.notes);
-          return cmpNum(ra, rb);
-        }
-        case 'score': {
-          const sa = getScore(a.id, a.difficulty);
-          const sb = getScore(b.id, b.difficulty);
-          return cmpNum(sa, sb);
-        }
-        case 'bp': {
-          const ba = getBP(a.id, a.difficulty);
-          const bb = getBP(b.id, b.difficulty);
-          return cmpNum(ba, bb);
-        }
+        case 'cleartype': 
+          return cmpNum(a.lamp, b.lamp);
+        case 'grade': 
+          return cmpNum(a.rate, b.rate);
+        case 'score':
+          return cmpNum(a.score, b.score);
+        case 'bp': 
+          return cmpNum(a.bp, b.bp);
         case 'bpi': {
-          const ba = getBPI(a.id, a.difficulty);
-          const bb = getBPI(b.id, b.difficulty);
-          return cmpNum(ba, bb);
+          const aBpi = Number.isNaN(a.bpi) ? -99 : a.bpi;
+          const bBpi = Number.isNaN(b.bpi) ? -99 : b.bpi;
+          return cmpNum(aBpi, bBpi);
         }
         default:
           return 0;
       }
     });
   }, [filtered, sortConfig]);
-
-  const renderCleartype = (id: string, difficulty: string) => {
-    const key = `${id}_${difficulty}`;
-    const lamp = clearData[key] ?? 0;
-    const bg = clearColorMap[lamp];
-    const text = simpleClearName[lamp] ?? '-';
-    return (
-      <Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: bg }}>
-        {text}
-      </Box>
-    );
-  };
-
-  const renderGrade = (id: string, difficulty: string, notes: number) => {
-    const key = `${id}_${difficulty}`;
-    const score = scoreData[key] ?? 0;
-    const rate = getPercentage(score, notes);
-    return `${getGrade(rate)} (${getDetailGrade(score, notes)})`;
-  };
-
-  const renderScore = (id: string, difficulty: string, notes: number) => {
-    const key = `${id}_${difficulty}`;
-    const score = scoreData[key] ?? 0;
-    const rate = getPercentage(score, notes) * 100;
-    return `${score} (${rate.toFixed(2)}%)`;
-  };
-
-  const renderBP = (id: string, difficulty: string) => {
-    const key = `${id}_${difficulty}`;
-    const bp = missData[key];
-    if (bp == null || bp === defaultMisscount) return '-';
-    return String(bp);
-  };
-
-  const renderBPI = (id: string, difficulty: string) => {
-    const bpiInfoEntry = bpiInfo?.[mode]?.[id]?.[difficulty];
-    const score = getScore(id, difficulty);
-    const bpi = bpiInfoEntry && score ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, score, bpiInfoEntry.coef) : NaN;
-    if (Number.isNaN(bpi)){
-      return ''
-    }else{
-      return bpi
-    }
-  }
 
   const handleLevelChange = (e: SelectChangeEvent<string>) => {
     setSelectedLevel(Number(e.target.value));
@@ -401,14 +340,16 @@ const SongTablePage: React.FC = () => {
                         {acInfDiffMap[Number(s.id)] ? ' (INFINITAS)' : ''}
                       </TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
-                        {renderCleartype(s.id, s.difficulty)}
+                        <Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: clearColorMap[s.lamp] }}>
+                          {simpleClearName[s.lamp] ?? '-'}
+                        </Box>
                       </TableCell>
                       {selectedLevel >= 11 && 
-                        <TableCell>{renderBPI(s.id, s.difficulty)}</TableCell>
+                        <TableCell>{Number.isNaN(s.bpi) ? '': s.bpi}</TableCell>
                       }
-                      <TableCell>{renderGrade(s.id, s.difficulty, s.notes)}</TableCell>
-                      <TableCell>{renderScore(s.id, s.difficulty, s.notes)}</TableCell>
-                      <TableCell>{renderBP(s.id, s.difficulty)}</TableCell>
+                      <TableCell>{getGrade(s.rate)} ({getDetailGrade(s.score, s.notes)})</TableCell>
+                      <TableCell>{s.score} ({(s.rate * 100).toFixed(2)}%)</TableCell>
+                      <TableCell>{s.bp == defaultMisscount ? '-' : s.bp}</TableCell>
                     </TableRow>
 
                     <TableRow
@@ -434,23 +375,26 @@ const SongTablePage: React.FC = () => {
                           }}
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            {renderCleartype(s.id, s.difficulty)}
+                            <Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: clearColorMap[s.lamp] }}>
+                              {simpleClearName[s.lamp] ?? '-'}
+                            </Box>
+                          </Box>
+                          {!Number.isNaN(s.bpi) &&
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <span>BPI{s.bpi}</span>
+                            </Box>
+                          }
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <span>{getGrade(s.rate)} ({getDetailGrade(s.score, s.notes)})</span>
                           </Box>
 
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <span>BPI{renderBPI(s.id, s.difficulty)}</span>
+                            <span>{s.score} ({(s.rate * 100).toFixed(2)}%)</span>
                           </Box>
 
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <span>{renderGrade(s.id, s.difficulty, s.notes)}</span>
-                          </Box>
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <span>{renderScore(s.id, s.difficulty, s.notes)}</span>
-                          </Box>
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <span>BP: {renderBP(s.id, s.difficulty)}</span>
+                            <span>{s.bp == defaultMisscount ? '-' : s.bp}</span>
                           </Box>
                         </Box>
                       </TableCell>
