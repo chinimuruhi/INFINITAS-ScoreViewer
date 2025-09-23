@@ -252,6 +252,10 @@ const Index: React.FC = () => {
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
               <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">2025/9/23</Typography>
+                <Typography variant="body1">譜面難易度のフィルタを追加（提供：leno3s様）</Typography>
+              </Stack>
+              <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2025/8/17</Typography>
                 <Typography variant="body1">Google Driveへのエクスポート / インポート機能の追加</Typography>
               </Stack>
