@@ -3,5 +3,6 @@ export type FilterState = {
   unlocked?: boolean;
   releaseType?: 'ac' | 'inf' | 'ac_only' | 'inf_only';
   version?: number[];
+  difficultyPattern?: number[];
   label?: number[];
 };
