@@ -1,8 +1,10 @@
+import { difficultyKey } from "../constants/difficultyConstrains";
 import { FilterState } from "../types/Types";
 
 export const isMatchSong = (filters: FilterState, lamp: number, difficulty: string, konamiInfInfo: any, chartInfo: any, unlocked: boolean, version: number, label: number) =>{
 
     if (filters?.cleartype && filters?.cleartype.length > 0 && !filters?.cleartype.includes(lamp)) return false;
+    if (filters?.difficultyPattern && !filters.difficultyPattern.includes(difficultyKey.indexOf(difficulty))) return false;
     if (filters?.unlocked !== undefined && filters?.unlocked !== unlocked) return false;
     if (filters?.releaseType) {
       const notInInf = (!chartInfo?.in_inf || (difficulty === 'L' && !konamiInfInfo?.in_leggendaria));

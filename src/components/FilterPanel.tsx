@@ -8,6 +8,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { FilterList, FilterListOff } from '@mui/icons-material';
 import { FilterState } from '../types/Types';
 import { simpleClearName } from '../constants/clearConstrains';
+import { difficultyDetailKeys, difficultyKey } from '../constants/difficultyConstrains';
 
 type Props = {
   filters: FilterState;
@@ -96,6 +97,27 @@ const FilterPanel = ({ filters, onChange }: Props) => {
             {simpleClearName.map((label, index) => (
               <MenuItem key={index} value={index}>
                 <Checkbox checked={pendingFilters?.cleartype?.includes(index) || false} />
+                <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={label} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* 譜面難易度  */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>譜面難易度</InputLabel>
+          <Select
+            multiple
+            value={pendingFilters?.difficultyPattern || []}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, difficultyPattern: e.target.value as number[] })}
+            renderValue={(selected) => (selected as number[]).map((v) => difficultyDetailKeys[v]).join(', ')}
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
+          >
+            {difficultyDetailKeys.map((label, index) => (
+              <MenuItem key={index} value={index}>
+                <Checkbox checked={pendingFilters?.difficultyPattern?.includes(index) || false} />
                 <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={label} />
               </MenuItem>
             ))}
