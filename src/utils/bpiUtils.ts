@@ -1,3 +1,23 @@
+// bpiURLの生成
+export async function resolveVersionByIndex(index: number): Promise<string> {
+  const response = await fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/versions.json');
+  if (!response.ok) {
+    throw new Error(`Failed to fetch versions.json: ${response.status}`);
+  }
+
+  const versions: string[] = await response.json();
+
+  if (!Array.isArray(versions) || versions.length === 0) {
+    throw new Error("versions.json が空または不正です");
+  }
+
+  if (Number.isNaN(index) || index < 0 || index >= versions.length) {
+    return versions[versions.length - 1];
+  }
+
+  return versions[index];
+}
+
 // _pgf関数の実装
 const pgf = (num: number, maxScore: number): number => {
   if (num === maxScore) {

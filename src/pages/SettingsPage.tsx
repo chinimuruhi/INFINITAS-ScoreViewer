@@ -14,6 +14,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from '@mui/material';
 import { getCurrentFormattedDate, getCurrentFormattedTime } from '../utils/dateUtils';
 import { appKeys } from '../constants/localStrageConstrains';
@@ -48,6 +52,9 @@ const SettingsPage: React.FC = () => {
   const [driveExportDialogOpen, setDriveExportDialogOpen] = useState(false);
   const [driveImportDialogOpen, setDriveImportDialogOpen] = useState(false);
 
+  const [versions, setVersions] = useState<string[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<number>(-1);
+
   useEffect(() => {
     try {
       const userRaw = localStorage.getItem('user');
@@ -63,6 +70,25 @@ const SettingsPage: React.FC = () => {
         setGoogleReady(false);
         setSnack({ open: true, message: 'Google連携の初期化に失敗しました。', severity: 'error' });
       });
+    fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/versions.json')
+    .then((res) => res.json())
+    .then((arr: string[]) => {
+      setVersions(arr);
+      const saved = localStorage.getItem('bpiVersion');
+      if (saved !== null) {
+        if (saved === '-1') {
+          setSelectedVersion(-1);
+        } else {
+          const idx = parseInt(saved, 10);
+          if (!isNaN(idx) && arr[idx]) {
+            setSelectedVersion(idx);
+          }
+        }
+      }
+    })
+    .catch(() => {
+      setSnack({ open: true, message: 'バージョンリストの取得に失敗しました。', severity: 'error' });
+    });
   }, []);
 
   const handleSaveDjName = () => {
@@ -76,6 +102,20 @@ const SettingsPage: React.FC = () => {
       setSnack({ open: true, message: 'DJ Name を保存しました。', severity: 'success' });
     } catch {
       setSnack({ open: true, message: 'DJ Name の保存に失敗しました。', severity: 'error' });
+    }
+  };
+
+  // BPI Version
+  const handleSaveVersion = () => {
+  try {
+      if (selectedVersion === -1) {
+        localStorage.setItem('bpiVersion', '-1');
+      } else {
+        localStorage.setItem('bpiVersion', String(selectedVersion));
+      }
+      setSnack({ open: true, message: 'バージョン設定を保存しました。', severity: 'success' });
+    } catch {
+      setSnack({ open: true, message: 'バージョン設定の保存に失敗しました。', severity: 'error' });
     }
   };
 
@@ -484,6 +524,29 @@ const SettingsPage: React.FC = () => {
                 sx={{ flex: 1, minWidth: 240 }}
               />
               <Button variant="contained" onClick={handleSaveDjName}>保存</Button>
+            </Stack>
+          </Paper>
+
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>BPI定義ファイル</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+              <FormControl sx={{ flex: 1, minWidth: 240 }}>
+                <InputLabel id="bpi-version-select-label">バージョン</InputLabel>
+                <Select
+                  labelId="bpi-version-select-label"
+                  value={selectedVersion}
+                  label="バージョン"
+                  onChange={(e) => setSelectedVersion(Number(e.target.value))}
+                >
+                  <MenuItem value="-1">常に最新を使用する</MenuItem>
+                  {versions.map((v, i) => (
+                    <MenuItem key={i} value={i}>
+                      {v}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button variant="contained" onClick={handleSaveVersion}>保存</Button>
             </Stack>
           </Paper>
 

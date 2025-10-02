@@ -13,7 +13,7 @@ import {
 import { ungzip } from 'pako';
 import { useAppContext } from '../context/AppContext';
 import FilterPanel from '../components/FilterPanel';
-import { calculateBpi } from '../utils/bpiUtils';
+import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
 import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { isMatchSong } from '../utils/filterUtils';
@@ -37,6 +37,7 @@ const BpiPage = () => {
   const [chartInfo, setChartInfo] = useState<any>({});
   const [songInfo, setSongInfo] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [bpiVersion, setBpiVersion] = useState<string>('');
   const navigate = useNavigate();
 
 
@@ -45,6 +46,10 @@ const BpiPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const bpiVersionIndex = parseInt(localStorage.getItem('bpiVersion') ?? '-1') ?? -1
+        const bpiVersionRes = await resolveVersionByIndex(bpiVersionIndex);
+        setBpiVersion(bpiVersionRes);
+
         const [
           songsRes,
           titleRes,
@@ -52,7 +57,7 @@ const BpiPage = () => {
           chartGz,
           songInfoGz
         ] = await Promise.all([
-          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${mode.toLowerCase()}_list.json`).then((res) => res.json()),
+          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersionRes}/${mode.toLowerCase()}_list.json`).then((res) => res.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then((res) => res.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then((res) => res.json()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then((res) => res.arrayBuffer()),
@@ -236,6 +241,10 @@ const BpiPage = () => {
           {/* 総合BPIの表示 */}
           <Typography variant="h6" gutterBottom>
             {`総合BPI(☆${level}): ${totalBpi.toFixed(2)}`}
+          </Typography>
+
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            現在の定義データは Ver.{bpiVersion} です。設定より定義データを選択できます。
           </Typography>
 
           {/* 達成率の表示 */}

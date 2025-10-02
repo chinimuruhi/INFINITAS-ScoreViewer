@@ -23,7 +23,7 @@ import { generateSearchText } from '../utils/titleUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
 import { acInfDiffMap } from '../constants/titleConstrains';
-import { calculateBpi } from '../utils/bpiUtils';
+import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
 
 type SongRow = {
   id: string;
@@ -101,6 +101,8 @@ const SongTablePage: React.FC = () => {
     const fetchAll = async () => {
       setLoading(true);
       try {
+        const bpiVersionIndex = parseInt(localStorage.getItem('bpiVersion') ?? '-1') ?? -1
+        const bpiVersion = await resolveVersionByIndex(bpiVersionIndex);
         const [
           titleRes,
           songInfoGz,
@@ -113,8 +115,8 @@ const SongTablePage: React.FC = () => {
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/song-info.json.gz').then(r => r.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(r => r.arrayBuffer()),
           fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/song_to_label.json').then(r => r.json()),
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/sp_dict.json').then((res) => res.json()),
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/bpi/dp_dict.json').then((res) => res.json()),
+          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/sp_dict.json`).then((res) => res.json()),
+          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/dp_dict.json`).then((res) => res.json()),
         ]);
 
         setSongInfo(JSON.parse(new TextDecoder().decode(ungzip(songInfoGz))));
