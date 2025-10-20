@@ -171,6 +171,7 @@ const Index: React.FC = () => {
                 <Stack spacing={1} sx={{ pl: 0.5 }}>
                   <ItemLink href="https://github.com/olji/Reflux">Reflux TSV</ItemLink>
                   <ItemLink href="https://github.com/dj-kata/inf_daken_counter_obsw">INFINITAS打鍵カウンタ CSV</ItemLink>
+                  <ItemLink href="https://github.com/kaktuswald/inf-notebook/wiki">INFINITASリザルト手帳 CSV</ItemLink>
                   <ItemLink href="https://p.eagate.573.jp/game/2dx/">KONAMI 公式スコアCSV</ItemLink>
                   <Typography variant="body2">サイトでの手動入力</Typography>
                 </Stack>
@@ -251,6 +252,10 @@ const Index: React.FC = () => {
           </Stack>
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
+              <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">2025/10/20</Typography>
+                <Typography variant="body1">リザルト手帳CSVに対応</Typography>
+              </Stack>
               <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2025/10/2</Typography>
                 <Typography variant="body1">BPI定義データの設定を追加</Typography>

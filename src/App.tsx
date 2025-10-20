@@ -206,7 +206,7 @@ const AppShell: React.FC = () => {
           <Divider sx={{ my: 1 }} />
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="caption" color="text.secondary">
-              © {new Date().getFullYear()} INFINITAS ScoreViewer
+              © {new Date().getFullYear()} chinimuruhi
             </Typography>
           </Box>
         </Box>

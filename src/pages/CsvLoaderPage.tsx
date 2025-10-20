@@ -5,7 +5,7 @@ import {
   SelectChangeEvent, Alert, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { parseOfficialCsv, parseRefluxTsv, parseIDCCsv, mergeWithCSVEntries } from '../utils/scoreDataUtils';
+import { parseOfficialCsv, parseRefluxTsv, parseIDCCsv, parseInbCsv, mergeWithCSVEntries } from '../utils/scoreDataUtils';
 import { getCurrentFormattedDate } from '../utils/dateUtils';
 import { useAppContext } from '../context/AppContext';
 import LinkComponent from '../components/LinkComponent';
@@ -15,7 +15,7 @@ import SectionCard from '../components/SectionCard';
 const CsvLoaderPage = () => {
   const navigate = useNavigate();
   const { mode, setMode } = useAppContext();
-  const [format, setFormat] = useState<'official' | 'reflux' | 'idc'>('idc');
+  const [format, setFormat] = useState<'official' | 'reflux' | 'idc' | 'inb'>('idc');
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
@@ -61,6 +61,11 @@ const CsvLoaderPage = () => {
           throw new Error('INFINITAS打鍵カウンタCSVとして認識できません');
         }
         result = await parseIDCCsv(text);
+      }else if (format === 'inb') {
+        if (!text.includes('曲名') || !text.includes('スコア')) {
+          throw new Error('INFINITASリザルト手帳CSVとして認識できません');
+        }
+        result = await parseInbCsv(text, mode);
       } else {
         if (!text.includes('Type') || !text.includes('Label')) {
           throw new Error('Reflux TSVとして認識できません');
@@ -113,7 +118,7 @@ const CsvLoaderPage = () => {
     }
 
     // 'reflux' の場合、UTF-8をそのまま処理
-    else if (format === 'reflux') {
+    else if (format === 'reflux' || format === 'inb') {
       const decoder = new TextDecoder('utf-8', { fatal: true });
       text = decoder.decode(uint8Array);
     }
@@ -160,7 +165,8 @@ const CsvLoaderPage = () => {
                 label="形式"
                 onChange={(e: SelectChangeEvent) => setFormat(e.target.value as any)}
               >
-                <MenuItem value="idc">INFINITAS打鍵カウンタCSV (β)</MenuItem>
+                <MenuItem value="idc">INFINITAS打鍵カウンタCSV</MenuItem>
+                <MenuItem value="inb">INFINITASリザルト手帳CSV</MenuItem>
                 <MenuItem value="reflux">Reflux TSV</MenuItem>
                 <MenuItem value="official">KONAMI 公式スコアCSV</MenuItem>
               </Select>
@@ -200,9 +206,29 @@ const CsvLoaderPage = () => {
                 <Typography variant="body2" sx={{ mb: 2 }}>
                   文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
                 </Typography>
-                <Alert severity="warning">
-                  全曲における動作確認ができておらず、一部楽曲の読み込みに失敗する可能性がございます。楽曲の読み込みに失敗した場合は報告いただけますと幸いです。
-                </Alert>
+              </>
+            )}
+
+            {format === 'inb' && (
+              <>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel id="mode-label">モード</InputLabel>
+                  <Select
+                    labelId="mode-label"
+                    value={mode}
+                    label="モード"
+                    onChange={(e: SelectChangeEvent) => setMode(e.target.value as any)}
+                  >
+                    <MenuItem value="SP">SP</MenuItem>
+                    <MenuItem value="DP">DP</MenuItem>
+                  </Select>
+                </FormControl>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  INFINITASリザルト手帳（<LinkComponent url="https://github.com/kaktuswald/inf-notebook/wiki">https://github.com/kaktuswald/inf-notebook/wiki</LinkComponent>）で出力できるSP.csvまたはDP.csvを想定しています。
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  文字コードはUTF-8を想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+                </Typography>
               </>
             )}
 

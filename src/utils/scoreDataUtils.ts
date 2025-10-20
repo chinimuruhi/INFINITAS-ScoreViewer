@@ -73,6 +73,44 @@ export async function parseIDCCsv(text: string): Promise<any> {
   return data;
 }
 
+// INFINITASリザルト手帳のパース
+export async function parseInbCsv(text: string, mode: 'SP' | 'DP'): Promise<any> {
+  const rows = parseCSV(text, { header: true }).data as any[];
+  const data: any = {};
+
+  rows.forEach(row => {
+    const title = row['曲名'];
+    if (!title) return;
+    const rawLastplay = row['最終プレイ日時'];
+    const match = rawLastplay.match(/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/);
+    let lastplay = '';
+    if (match) {
+      const [, year, month, day, hour, minute] = match;
+      lastplay = `${year}-${month}-${day} ${hour}:${minute}`;
+    }
+
+    const difficulty = row['難易度'].slice(0, 1);
+    const score = parseInt(row['スコア'] || '0');
+    const miss = row['ミスカウント'] ? parseInt(row['ミスカウント']) : defaultMisscount;
+    const clear = clearMapIDC[(row['クリアタイプ'] || '').trim()] ?? 0;
+    if (clear != 0) {
+      if (!data[mode]) data[mode] = {};
+      if (!data[mode][title]) data[mode][title] = {};
+      data[mode][title][difficulty] = {
+        title,
+        difficulty: difficulty,
+        score: isNaN(score) ? 0 : score,
+        misscount: isNaN(miss) ? defaultMisscount : miss,
+        cleartype: clear,
+        unlocked: false,
+        lastplay: lastplay
+      };
+    }
+  });
+
+  return data;
+}
+
 // Reflux TSVのパース
 export async function parseRefluxTsv(text: string): Promise<any> {
   const rows = text.split('\n').map(line => line.split('\t'));
