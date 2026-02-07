@@ -59,6 +59,10 @@ export const replaceTitle: ReplaceEntry[] = [
     {
         from: 'ウツミウツシ',
         to: 'ウツシミウツシ'
+    },
+    {
+        from: 'Destiny Lovers',
+        to: 'Destiny lovers'
     }
 ]
 
