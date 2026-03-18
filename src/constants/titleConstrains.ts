@@ -36,6 +36,10 @@ export const replaceTitle: ReplaceEntry[] = [
         to: 'ACTO'
     },
     {
+        from: 'Raspberry Potion (feat.あれたん? & ぎゃるのしん☆)',
+        to: 'RaspberryPotion(feat.あれたん&ぎゃるのしん)'
+    },
+    {
         from: '♥LOVE² シュガ→♥',
         to: 'LOVE2シュガ→'
     },
