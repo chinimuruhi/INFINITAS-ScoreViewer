@@ -50,7 +50,7 @@ const EditDataPage = () => {
     setUser(JSON.parse(localStorage.getItem('user') || '{}'));
 
     const songIdRes = Number(songIdRaw) || -1;
-    const difficultyRes = difficultyKey[Number(difficultyRaw) || 3] || 'A';
+    const difficultyRes = difficultyKey[Number(difficultyRaw) ?? 3] || 'A';
     setsongId(songIdRes);
     setDifficulty(difficultyRes);
     setScore(dataRes?.[mode]?.[songIdRes]?.[difficultyRes]?.['score'] || 0);
