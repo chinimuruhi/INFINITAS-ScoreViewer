@@ -7,7 +7,7 @@
     "prod": "vite --mode production",
     "build": "vite build --mode production && npm run prerender",
     "prerender": "vite build --ssr src/prerender.tsx --outDir dist-ssr && node scripts/inject-prerender.mjs",
-    "preview": "vite preview --base /INFINITAS-ScoreViewer/ --port 3000 --strictPort"
+    "preview": "vite build --mode production && vite preview --base /INFINITAS-ScoreViewer/ --port 3000 --strictPort"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
