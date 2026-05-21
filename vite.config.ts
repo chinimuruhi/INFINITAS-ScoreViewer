@@ -27,6 +27,16 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       target: 'esnext',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-mui': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+            'vendor-recharts': ['recharts'],
+            'vendor-pako': ['pako'],
+          },
+        },
+      },
     },
     define: {
       'process.env.BASE_URL': JSON.stringify(base),

@@ -6,7 +6,8 @@ import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Tooltip,
 import { ungzip } from 'pako';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useAppContext } from '../context/AppContext';
+import { useMode } from '../context/ModeContext';
+import { useDataContext } from '../context/DataContext';
 import { raderCategoryColors } from '../constants/colorConstrains';
 import { chartCategories } from '../constants/chartInfoConstrains';
 import { difficultyKey } from '../constants/difficultyConstrains';
@@ -14,14 +15,13 @@ import SectionCard from '../components/SectionCard';
 import { Page, PageHeader } from '../components/Page';
 import { useNavigate } from 'react-router-dom';
 
-
 const RadarPage = () => {
-  const { mode } = useAppContext();
+  const { mode } = useMode();
+  const { titleMap, chartInfo, commonLoading } = useDataContext();
+
   const [radarData, setRadarData] = useState<Record<string, any>[]>([]);
   const [topSongs, setTopSongs] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
-  const [titleMap, setTitleMap] = useState<Record<string, string>>({});
-  const [chartInfo, setChartInfo] = useState<any>({});
   const [selectedTab, setSelectedTab] = useState(0);
   const [topAverages, setTopAverages] = useState<Record<string, number>>({});
   const theme = useTheme();
@@ -29,6 +29,8 @@ const RadarPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (commonLoading) return;
+
     const fetchRadar = async () => {
       setLoading(true);
       try {
@@ -36,14 +38,8 @@ const RadarPage = () => {
           ? 'https://chinimuruhi.github.io/IIDX-Data-Table/notes_radar/sp.json.gz'
           : 'https://chinimuruhi.github.io/IIDX-Data-Table/notes_radar/dp.json.gz';
 
-        const [radarBuf, titleJson, chartInfoBuf] = await Promise.all([
-          fetch(radarUrl).then(res => res.arrayBuffer()),
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then(res => res.json()),
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then(res => res.arrayBuffer())
-        ]);
-
+        const radarBuf = await fetch(radarUrl).then(res => res.arrayBuffer());
         const radarJson = JSON.parse(new TextDecoder().decode(ungzip(radarBuf)));
-        const chartJson = JSON.parse(new TextDecoder().decode(ungzip(chartInfoBuf)));
         const local = JSON.parse(localStorage.getItem('data') || '{}');
         const userData = local[mode] || {};
         const songRadarResults: any[] = [];
@@ -76,42 +72,30 @@ const RadarPage = () => {
             const v = it[cat] ?? 0;
             if (!v) continue;
             const prev = map.get(it.id);
-            if (!prev || v > (prev[cat] ?? 0)) {
-              map.set(it.id, it);
-            }
+            if (!prev || v > (prev[cat] ?? 0)) map.set(it.id, it);
           }
           return Array.from(map.values());
         };
 
         chartCategories.forEach(cat => {
           const deduped = pickBestPerSong(songRadarResults, cat);
-
           deduped.sort((a, b) => (b[cat] ?? 0) - (a[cat] ?? 0));
           const top10 = deduped.slice(0, 10);
-
           top[cat] = top10;
           const denom = top10.length || 1;
-          averages[cat] = Number(
-            (top10.reduce((sum, cur) => sum + (cur[cat] ?? 0), 0) / denom).toFixed(2)
-          );
+          averages[cat] = Number((top10.reduce((sum, cur) => sum + (cur[cat] ?? 0), 0) / denom).toFixed(2));
         });
 
-        const radarAverage = chartCategories.map(cat => ({
-          subject: cat,
-          A: averages[cat]
-        }));
-
+        const radarAverage = chartCategories.map(cat => ({ subject: cat, A: averages[cat] }));
         setRadarData(radarAverage);
         setTopSongs(top);
         setTopAverages(averages);
-        setTitleMap(titleJson);
-        setChartInfo(chartJson);
       } finally {
         setLoading(false);
       }
     };
     fetchRadar();
-  }, [mode]);
+  }, [mode, commonLoading]);
 
   const totalAverage = Object.values(topAverages).reduce((sum, v) => sum + v, 0).toFixed(2);
 
@@ -119,17 +103,9 @@ const RadarPage = () => {
     const { x, y, payload } = props;
     const angle = payload?.coordinate;
     let dy = 0;
-
-    if (angle === -90) {
-      dy = isXs ? 3 : 6;
-    }
-
+    if (angle === -90) dy = isXs ? 3 : 6;
     return (
-      <text
-        x={x} y={y} dy={dy} textAnchor="middle"
-        fontSize={isXs ? 10 : 20} fill="#000"
-        stroke="#fff" strokeWidth={isXs ? 3 : 3.5} style={{ paintOrder: 'stroke' }}
-      >
+      <text x={x} y={y} dy={dy} textAnchor="middle" fontSize={isXs ? 10 : 20} fill="#000" stroke="#fff" strokeWidth={isXs ? 3 : 3.5} style={{ paintOrder: 'stroke' }}>
         {payload?.value}
       </text>
     );
@@ -140,7 +116,7 @@ const RadarPage = () => {
       <PageHeader compact title="ノーツレーダー" />
       <SectionCard dense>
         <Box sx={{ px: { xs: 1, sm: 2 }, pt: 1 }}>
-          <Backdrop open={loading} sx={{ zIndex: 9999, color: '#fff' }}>
+          <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
 
@@ -167,12 +143,9 @@ const RadarPage = () => {
           {chartCategories.map((cat, i) => selectedTab === i && (
             <Box key={cat} sx={{ mt: 2 }}>
               <Typography variant="h6">TOP10</Typography>
-
-              {/* スマホで横スクロールが必要なときの保険 */}
               <Box sx={{ overflowX: 'auto' }}>
                 <Table size="small" sx={{ minWidth: 520, fontVariantNumeric: 'tabular-nums' }}>
                   <TableHead>
-                    {/* ヘッダはスマホでは非表示（行を畳むため） */}
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                       <TableCell>曲名</TableCell>
                       <TableCell>レベル</TableCell>
@@ -180,7 +153,6 @@ const RadarPage = () => {
                       <TableCell>スコア</TableCell>
                     </TableRow>
                   </TableHead>
-
                   <TableBody>
                     {topSongs[cat]?.map((s, idx) => {
                       const level = chartInfo[s.id]?.level?.[mode.toLowerCase()]?.[difficultyKey.indexOf(s.diff)];
@@ -188,34 +160,20 @@ const RadarPage = () => {
                       const attrVal = s[`${cat}_attr`] ?? 0;
                       const ratePct = (s.scoreRate ?? 0) * 100;
                       const key = `${s.id}_${s.diff}_${idx}`;
-
                       return (
                         <React.Fragment key={key}>
-                          {/* PC/タブレット向け：従来の4列 */}
                           <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
                             <TableCell>{titleMap[s.id] || s.id} [{s.diff}]</TableCell>
                             <TableCell>{level ? `☆${level}` : '-'}</TableCell>
                             <TableCell>{radarVal.toFixed(2)} / {attrVal.toFixed(2)}</TableCell>
                             <TableCell>{s.score} ({ratePct.toFixed(2)}%)</TableCell>
                           </TableRow>
-
-                          {/* スマホ向け：1セルに畳む */}
                           <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
                             <TableCell colSpan={4} sx={{ py: 1.25 }}>
                               <Typography variant="body2" fontWeight={700} noWrap>
                                 {titleMap[s.id] || s.id} [{s.diff}]
                               </Typography>
-                              <Box
-                                sx={{
-                                  mt: 0.5,
-                                  display: 'flex',
-                                  flexWrap: 'wrap',
-                                  columnGap: 1.5,
-                                  rowGap: 0.5,
-                                  color: 'text.secondary',
-                                  fontSize: 12,
-                                }}
-                              >
+                              <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.5, color: 'text.secondary', fontSize: 12 }}>
                                 <span>☆{level ?? '-'}</span>
                                 <span>Rader: {radarVal.toFixed(1)} / {attrVal.toFixed(1)}</span>
                                 <span>Score: {s.score} ({ratePct.toFixed(1)}%)</span>
@@ -230,7 +188,6 @@ const RadarPage = () => {
               </Box>
             </Box>
           ))}
-
         </Box>
       </SectionCard>
     </Page>

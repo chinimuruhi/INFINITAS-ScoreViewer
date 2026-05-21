@@ -15,7 +15,7 @@ import RadarRoundedIcon from '@mui/icons-material/RadarRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 
-import { useAppContext } from './context/AppContext';
+import { useMode } from './context/ModeContext';
 
 import CsvLoaderPage from './pages/CsvLoaderPage';
 import DiffPage from './pages/DiffPage';
@@ -35,7 +35,7 @@ import Index from './pages/Index';
 type VisibleMode = 'SP' | 'DP' | 'both';
 
 const AppShell: React.FC = () => {
-  const { mode, setMode } = useAppContext();
+  const { mode, setMode } = useMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();

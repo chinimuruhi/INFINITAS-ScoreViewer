@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { ModeProvider, useMode } from './ModeContext';
+import { FilterProvider, useFilters } from './FilterContext';
 import { FilterState } from '../types/Types';
-import { filtersKey } from '../constants/localStrageConstrains';
 
 interface AppContextType {
   mode: 'SP' | 'DP';
@@ -9,33 +10,16 @@ interface AppContextType {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
 }
 
-interface AppProviderProps {
-  children: ReactNode;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const [mode, setMode] = useState<'SP' | 'DP'>('SP');
-  const [filters, setFilters] = useState<FilterState>(
-    () => JSON.parse(localStorage.getItem(filtersKey) || '{}')
-  );
-
-  useEffect(() => {
-    localStorage.setItem(filtersKey, JSON.stringify(filters));
-  }, [filters]);
-
-  return (
-    <AppContext.Provider value={{ mode, setMode, filters, setFilters }}>
+export const AppProvider = ({ children }: { children: ReactNode }) => (
+  <ModeProvider>
+    <FilterProvider>
       {children}
-    </AppContext.Provider>
-  );
-};
+    </FilterProvider>
+  </ModeProvider>
+);
 
 export const useAppContext = (): AppContextType => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
+  const { mode, setMode } = useMode();
+  const { filters, setFilters } = useFilters();
+  return { mode, setMode, filters, setFilters };
 };

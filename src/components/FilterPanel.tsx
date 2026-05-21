@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box, FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText,
   Collapse, Button, IconButton, Typography
@@ -9,6 +9,7 @@ import { FilterList, FilterListOff } from '@mui/icons-material';
 import { FilterState } from '../types/Types';
 import { simpleClearName } from '../constants/clearConstrains';
 import { difficultyDetailKeys, difficultyKey } from '../constants/difficultyConstrains';
+import { useDataContext } from '../context/DataContext';
 
 type Props = {
   filters: FilterState;
@@ -17,30 +18,11 @@ type Props = {
 
 const FilterPanel = ({ filters, onChange }: Props) => {
   const theme = useTheme();
-  const isXs = useMediaQuery(theme.breakpoints.down('sm')); // ← スマホ判定
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'));
+  const { versionLabels, labelMap } = useDataContext();
 
-  const [versionLabels, setVersionLabels] = useState<{ [key: number]: string }>({});
-  const [labelMap, setLabelMap] = useState<{ [key: number]: string }>({});
   const [open, setOpen] = useState(false);
   const [pendingFilters, setPendingFilters] = useState<FilterState>(filters);
-
-  useEffect(() => {
-    fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/version.json')
-      .then(res => res.json())
-      .then(data => {
-        const map: { [key: number]: string } = {};
-        Object.entries(data).forEach(([k, v]) => { map[parseInt(k)] = v as string; });
-        setVersionLabels(map);
-      });
-
-    fetch('https://chinimuruhi.github.io/IIDX-Data-Table/konami/label.json')
-      .then(res => res.json())
-      .then(data => {
-        const map: { [key: number]: string } = {};
-        Object.entries(data).forEach(([k, v]) => { map[parseInt(k)] = v as string; });
-        setLabelMap(map);
-      });
-  }, []);
 
   const handleApply = () => onChange(pendingFilters);
 
