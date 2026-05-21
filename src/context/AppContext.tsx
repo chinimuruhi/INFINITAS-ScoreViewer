@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterState } from '../types/Types';
+import { filtersKey } from '../constants/localStrageConstrains';
 
 interface AppContextType {
   mode: 'SP' | 'DP';
@@ -16,7 +17,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [mode, setMode] = useState<'SP' | 'DP'>('SP');
-  const [filters, setFilters] = useState<FilterState>({});
+  const [filters, setFilters] = useState<FilterState>(
+    () => JSON.parse(localStorage.getItem(filtersKey) || '{}')
+  );
+
+  useEffect(() => {
+    localStorage.setItem(filtersKey, JSON.stringify(filters));
+  }, [filters]);
 
   return (
     <AppContext.Provider value={{ mode, setMode, filters, setFilters }}>
