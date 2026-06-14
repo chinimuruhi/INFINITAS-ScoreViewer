@@ -253,6 +253,10 @@ const Index: React.FC = () => {
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent>
               <Stack spacing={1}>
+                <Typography variant="subtitle2" color="text.secondary">2026/6/15</Typography>
+                <Typography variant="body1">主に表示に関する軽微な修正</Typography>
+              </Stack>
+              <Stack spacing={1}>
                 <Typography variant="subtitle2" color="text.secondary">2026/5/21</Typography>
                 <Typography variant="body1">フィルタ状態をlocalstrageに保存するように（提供：laskarina様）</Typography>
               </Stack>

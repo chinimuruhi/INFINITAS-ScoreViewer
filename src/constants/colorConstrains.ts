@@ -19,15 +19,15 @@ export const raderCategoryColors: Record<string, string> = {
 };
 
 export const scoreColorMap: { [key: string]: string } = {
-    'AAA': '#4caf50',
-    'AA': '#ffeb3b',
-    'A': '#ff9800',
-    'MAX-': '#f44336',
-    'B': '#2196f3',
-    'C': '#2196f3',
-    'D': '#2196f3',
-    'E': '#2196f3',
-    'F': '#2196f3'
+    'MAX-': '#d685fe',
+    'AAA': '#ff8279',
+    'AA': '#ffc061',
+    'A': '#fff177',
+    'B': '#c8e2f8',
+    'C': '#c8e2f8',
+    'D': '#c8e2f8',
+    'E': '#c8e2f8',
+    'F': '#c8e2f8'
 };
 
 export const bpiGapColor = (gap: number, isBg: boolean): string => {

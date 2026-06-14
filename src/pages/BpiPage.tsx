@@ -181,23 +181,40 @@ const BpiPage = () => {
             現在の定義データは Ver.{bpiVersion} です。設定より定義データを選択できます。
           </Typography>
 
-          {Object.keys(achievementRates).map((grade) => (
-            <Box key={grade} sx={{ mb: 1 }}>
-              <Typography variant="body1">
-                {grade}達成率: {totalCount > 0
-                  ? `${((achievementRates[grade] / totalCount) * 100).toFixed(1)}% (${achievementRates[grade]}/${totalCount})`
-                  : '0.0% (0/0)'}
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={totalCount > 0 ? (achievementRates[grade] / totalCount) * 100 : 0}
-                sx={{
-                  backgroundColor: '#eee',
-                  '& .MuiLinearProgress-bar': { backgroundColor: scoreColorMap[grade] },
-                }}
-              />
-            </Box>
-          ))}
+          <Box sx={{ my: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {Object.keys(achievementRates).map((grade) => {
+              const count = achievementRates[grade];
+              const pct = totalCount > 0 ? (count / totalCount) * 100 : 0;
+              const color = scoreColorMap[grade];
+              return (
+                <Box key={grade} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 } }}>
+                  <Box sx={{ width: { xs: 10, sm: 12 }, height: { xs: 10, sm: 12 }, borderRadius: '50%', backgroundColor: color, flexShrink: 0, border: '1px solid rgba(0,0,0,.15)' }} />
+                  <Typography
+                    variant="caption"
+                    sx={{ width: { xs: 50, sm: 56 }, flexShrink: 0, fontWeight: 700, color: 'text.secondary', fontSize: { xs: '0.60rem', sm: undefined } }}
+                  >
+                    {grade}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={pct}
+                    sx={{ flex: 1, '& .MuiLinearProgress-bar': { backgroundColor: color } }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ width: { xs: 50, sm: 100 }, flexShrink: 0, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'text.secondary', fontSize: { xs: '0.68rem', sm: undefined } }}
+                  >
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'inline' } }}>
+                      {count}/{totalCount}{' '}
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                      ({pct.toFixed(1)}%)
+                    </Box>
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
 
           <FilterPanel filters={filters} onChange={setFilters} />
 
@@ -232,10 +249,11 @@ const BpiPage = () => {
                   const key = `${song.id}_${song.difficulty}`;
                   const title = titleMap[song.id];
                   const displayTitle = `${title}[${song.difficulty}]`;
+                  const colorGrade = song.percentage >= 17 / 18 ? 'MAX-' : song.grade;
                   const boxSx =
                     song.score === 0
                       ? { p: { xs: 1, sm: 1 }, border: '1px solid #ccc', borderRadius: 2, backgroundColor: 'white' }
-                      : { p: { xs: 1, sm: 1 }, border: `3px solid ${bpiGapColor(song.gap, false)}`, borderRadius: 2, backgroundColor: bpiGapColor(song.gap, true) };
+                      : { p: { xs: 1, sm: 1 }, border: `3px solid ${bpiGapColor(song.gap, false)}`, borderRadius: 2, backgroundColor: scoreColorMap[colorGrade] };
                   return (
                     <Grid item xs={1} sm={6} md={4} key={key} sx={{ minWidth: 0 }}>
                       <Box sx={boxSx}>
