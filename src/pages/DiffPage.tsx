@@ -53,7 +53,7 @@ const DiffPage = () => {
   const [dpSongsDict, setDpSongsDict] = useState<Record<string, Record<string, { value: number }>>>({});
 
   // ソート（デフォルト: 難易度表順）
-  const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
+  const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({ key: 'default', direction: 'desc' });
   const [scoreSortConfig, setScoreSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
   const [missSortConfig, setMissSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
   const navigate = useNavigate();
@@ -154,6 +154,11 @@ const DiffPage = () => {
       if (key === 'tableLevel') {
         if (a.diffSortValue !== b.diffSortValue) return cmp(a.diffSortValue, b.diffSortValue);
         return cmp(a.lv, b.lv);
+      }
+      if (key === 'default') {
+        if (a.lv !== b.lv) return cmp(a.lv, b.lv);
+        if (a.diffSortValue !== b.diffSortValue) return cmp(a.diffSortValue, b.diffSortValue);
+        return cmp(a.after, b.after);
       }
       return 0;
     });
