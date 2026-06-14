@@ -111,10 +111,15 @@ const CsvLoaderPage = () => {
       }
     }
 
-    // 'idc' の場合、Shift JISを処理
+    // 'idc' の場合、UTF-8 BOM があれば UTF-8、なければ Shift-JIS として処理
     else if (format === 'idc') {
-      const decoder = new TextDecoder('shift-jis', { fatal: true });
-      text = decoder.decode(uint8Array);
+      if (uint8Array[0] === 0xEF && uint8Array[1] === 0xBB && uint8Array[2] === 0xBF) {
+        const decoder = new TextDecoder('utf-8');
+        text = decoder.decode(uint8Array.slice(3));
+      } else {
+        const decoder = new TextDecoder('shift-jis', { fatal: true });
+        text = decoder.decode(uint8Array);
+      }
     }
 
     // 'reflux' の場合、UTF-8をそのまま処理
@@ -204,7 +209,7 @@ const CsvLoaderPage = () => {
                   INFINITAS打鍵カウンタ（<LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">https://github.com/dj-kata/inf_daken_counter_obsw</LinkComponent>）で出力できるCSVです。
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2 }}>
-                  文字コードはShift JISを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
+                  文字コードはShift JISまたはUTF-8 with BOMに対応しています。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
                 </Typography>
               </>
             )}
