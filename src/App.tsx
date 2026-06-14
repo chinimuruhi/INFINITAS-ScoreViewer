@@ -79,9 +79,9 @@ const AppShell: React.FC = () => {
         position="sticky"
         elevation={0}
         sx={{
-          background:
-            'linear-gradient(90deg, rgba(99,102,241,.95), rgba(56,189,248,.95))',
-          borderBottom: theme => `1px solid ${theme.palette.divider}`,
+          background: 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 50%, #1d4ed8 100%)',
+          borderBottom: '1px solid rgba(255,255,255,.15)',
+          boxShadow: '0 2px 16px rgba(37,99,235,.35)',
         }}
       >
         <Toolbar sx={{ minHeight: 64 }}>
@@ -114,8 +114,8 @@ const AppShell: React.FC = () => {
               py: 0.5,
               display: 'flex',
               alignItems: 'center',
-              border: theme => `1px solid ${theme.palette.divider}`,
-              boxShadow: '0 2px 10px rgba(0,0,0,.08)',
+              border: '1px solid rgba(255,255,255,.3)',
+              boxShadow: '0 2px 10px rgba(0,0,0,.3)',
             }}
           >
             <ToggleButtonGroup
@@ -140,7 +140,7 @@ const AppShell: React.FC = () => {
               px: 2,
               py: 2,
               background:
-                'linear-gradient(135deg, rgba(99,102,241,.12), rgba(56,189,248,.10))',
+                'linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.03))',
               borderBottom: theme => `1px solid ${theme.palette.divider}`,
             }}
           >
@@ -186,7 +186,7 @@ const AppShell: React.FC = () => {
                       mb: .5,
                       '&.Mui-selected': {
                         bgcolor: 'action.selected',
-                        boxShadow: 'inset 0 0 0 1px rgba(99,102,241,.25)',
+                        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
                       },
                     }}
                   >

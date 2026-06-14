@@ -34,7 +34,7 @@ const Index: React.FC = () => {
           overflow: 'hidden',
           py: { xs: 10, md: 14 },
           background:
-            'radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,.22), transparent 60%), radial-gradient(900px 500px at 110% 10%, rgba(56,189,248,.18), transparent 55%)',
+            'linear-gradient(180deg, rgba(0,0,0,.06) 0%, transparent 55%)',
         }}
       >
         <Container maxWidth="lg">
@@ -126,7 +126,7 @@ const Index: React.FC = () => {
       </Box>
 
       {/* こんな方におすすめ！ */}
-      <Container maxWidth="lg" sx={{ py: 0 }}>
+      <Container maxWidth="lg" sx={{ pt: { xs: 3, md: 4 }, pb: 0 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card variant="outlined" sx={{ borderRadius: 3 }}>
@@ -217,7 +217,7 @@ const Index: React.FC = () => {
             px: { xs: 3, md: 6 },
             py: { xs: 4, md: 5 },
             background:
-              'linear-gradient(135deg, rgba(99,102,241,.1), rgba(56,189,248,.08))',
+              'linear-gradient(135deg, rgba(0,0,0,.05), rgba(0,0,0,.02))',
             border: theme => `1px solid ${theme.palette.divider}`,
           }}
         >
@@ -244,7 +244,7 @@ const Index: React.FC = () => {
       </Container>
 
       {/* 更新履歴 */}
-      <Box sx={{ py: 6, bgcolor: 'background.paper', borderTop: theme => `1px solid ${theme.palette.divider}` }}>
+      <Box sx={{ py: 6, bgcolor: 'background.paper', borderTop: theme => `1px solid ${theme.palette.divider}`, borderBottom: theme => `1px solid ${theme.palette.divider}` }}>
         <Container maxWidth="lg">
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
             <HistoryRoundedIcon color="primary" />
@@ -290,7 +290,7 @@ const Index: React.FC = () => {
       </Box>
 
       {/* お問い合わせ / 注意事項 */}
-      <Container maxWidth="lg" sx={{ py: 0 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
