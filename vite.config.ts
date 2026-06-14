@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import sitemap from 'vite-plugin-sitemap';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isSsrBuild }) => {
   // baseプロパティに設定する値
   let base = "/"
 
@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
       target: 'esnext',
       rollupOptions: {
         output: {
-          manualChunks: {
+          manualChunks: isSsrBuild ? undefined : {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-mui': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
             'vendor-recharts': ['recharts'],
