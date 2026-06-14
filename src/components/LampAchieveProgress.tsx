@@ -40,10 +40,12 @@ const LampAchieveProgress: React.FC<LampAchieveProgressProps> = ({ stats, totalC
               variant="caption"
               sx={{ width: { xs: 50, sm: 100 }, flexShrink: 0, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'text.secondary', fontSize: { xs: '0.68rem', sm: undefined } }}
             >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'inline' } }}>
                 {count}/{totalCount}{' '}
               </Box>
-              ({pct.toFixed(1)}%)
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                ({pct.toFixed(1)}%)
+              </Box>
             </Typography>
           </Box>
         );
