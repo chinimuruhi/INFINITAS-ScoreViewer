@@ -47,34 +47,30 @@ const DiffPage = () => {
   const [isShared, setIsShared] = useState(false);
   const [isUrldataValid, setIsUrldataValid] = useState(true);
   const [bpiInfo, setBpiInfo] = useState<any>({});
+  const [sp12Songs, setSp12Songs] = useState<any[]>([]);
+  const [sp11Songs, setSp11Songs] = useState<any[]>([]);
+  const [spDiffLabels, setSpDiffLabels] = useState<{ sp12: any; sp11: any }>({ sp12: {}, sp11: {} });
+  const [dpSongsDict, setDpSongsDict] = useState<Record<string, Record<string, { value: number }>>>({});
 
-  // ソート
-  const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({ key: 'lv', direction: 'desc' });
-  const [scoreSortConfig, setScoreSortConfig] = useState<{ key: string; direction: string }>({ key: 'lv', direction: 'desc' });
-  const [missSortConfig, setMissSortConfig] = useState<{ key: string; direction: string }>({ key: 'lv', direction: 'desc' });
+  // ソート（デフォルト: 難易度表順）
+  const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
+  const [scoreSortConfig, setScoreSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
+  const [missSortConfig, setMissSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
     try {
-      const bpiVersionIndex = parseInt(localStorage.getItem('bpiVersion') ?? '-1') ?? -1
+      const bpiVersionIndex = parseInt(localStorage.getItem('bpiVersion') ?? '-1') ?? -1;
       const bpiVersion = await resolveVersionByIndex(bpiVersionIndex);
-      const [
-          titleRes,
-          chartGz,
-          bpiSpInfo,
-          bpiDpInfo,
-        ] = await Promise.all([
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then((res) => res.json()),
-          fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then((res) => res.arrayBuffer()),
-          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/sp_dict.json`).then((res) => res.json()),
-          fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/dp_dict.json`).then((res) => res.json()),
-        ]);
+      const [titleRes, chartGz, bpiSpInfo, bpiDpInfo] = await Promise.all([
+        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then((res) => res.json()),
+        fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then((res) => res.arrayBuffer()),
+        fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/sp_dict.json`).then((res) => res.json()),
+        fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/dp_dict.json`).then((res) => res.json()),
+      ]);
       setTitleMap(titleRes);
       setChartInfo(JSON.parse(new TextDecoder().decode(ungzip(chartGz))));
-      setBpiInfo({
-        'SP': bpiSpInfo,
-        'DP': bpiDpInfo
-      });
+      setBpiInfo({ 'SP': bpiSpInfo, 'DP': bpiDpInfo });
 
       const urlParams = new URLSearchParams(window.location.search);
       const data = urlParams.get('data');
@@ -116,6 +112,22 @@ const DiffPage = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // 難易度表データは初期表示をブロックしないよう別途フェッチ
+  useEffect(() => {
+    Promise.all([
+      fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/sp12/songs_list.json').then(r => r.json()).catch(() => []),
+      fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/sp12/difficulty.json').then(r => r.json()).catch(() => ({})),
+      fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/sp11/songs_list.json').then(r => r.json()).catch(() => []),
+      fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/sp11/difficulty.json').then(r => r.json()).catch(() => ({})),
+      fetch('https://chinimuruhi.github.io/IIDX-Data-Table/difficulty/dp/songs_dict.json').then(r => r.json()).catch(() => ({})),
+    ]).then(([sp12SongsRes, sp12DiffRes, sp11SongsRes, sp11DiffRes, dpSongsDictRes]) => {
+      setSp12Songs(sp12SongsRes);
+      setSp11Songs(sp11SongsRes);
+      setSpDiffLabels({ sp12: sp12DiffRes, sp11: sp11DiffRes });
+      setDpSongsDict(dpSongsDictRes);
+    });
+  }, []);
+
   const handleSort = (table: 'clear' | 'score' | 'miss', key: string) => {
     let direction = 'asc';
     const cfg = table === 'clear' ? clearSortConfig : table === 'score' ? scoreSortConfig : missSortConfig;
@@ -132,13 +144,17 @@ const DiffPage = () => {
       if (key === 'afterLamp') return cmp(a.after, b.after);
       if (key === 'grade') return cmp(a.afterRate, b.afterRate);
       if (key === 'score') return cmp(a.afterScore, b.afterScore);
-      if (key === 'bpi'){
+      if (key === 'bpi') {
         const aBpi = Number.isNaN(a.bpi) ? -99 : a.bpi;
         const bBpi = Number.isNaN(b.bpi) ? -99 : b.bpi;
         return cmp(aBpi, bBpi);
-      } 
+      }
       if (key === 'bp') return cmp(a.afterMisscount, b.afterMisscount);
       if (key === 'diff') return cmp(a.diff, b.diff);
+      if (key === 'tableLevel') {
+        if (a.diffSortValue !== b.diffSortValue) return cmp(a.diffSortValue, b.diffSortValue);
+        return cmp(a.lv, b.lv);
+      }
       return 0;
     });
 
@@ -169,6 +185,39 @@ const DiffPage = () => {
     window.open(twitterUrl, '_blank');
   };
 
+  // DP非公式難易度表のルックアップマップ（id_difficulty → value）
+  const dpDiffMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.entries(dpSongsDict).forEach(([id, diffs]) => {
+      Object.entries(diffs).forEach(([diff, entry]) => {
+        map[`${id}_${diff}`] = entry.value;
+      });
+    });
+    return map;
+  }, [dpSongsDict]);
+
+  // SP☆12・SP☆11 難易度表のルックアップマップ
+  const diffTableMap = useMemo(() => {
+    const map: Record<string, { clearLabel: string; hardLabel: string; clearValue: number; tableLv: number }> = {};
+    sp12Songs.forEach(song => {
+      map[`${song.id}_${song.difficulty}`] = {
+        clearLabel: spDiffLabels.sp12['normal']?.[String(song.n_value)] ?? '',
+        hardLabel: spDiffLabels.sp12['hard']?.[String(song.h_value)] ?? '',
+        clearValue: song.n_value ?? 0,
+        tableLv: 12,
+      };
+    });
+    sp11Songs.forEach(song => {
+      map[`${song.id}_${song.difficulty}`] = {
+        clearLabel: spDiffLabels.sp11['normal']?.[String(song.n_value)] ?? '',
+        hardLabel: spDiffLabels.sp11['hard']?.[String(song.h_value)] ?? '',
+        clearValue: song.n_value ?? 0,
+        tableLv: 11,
+      };
+    });
+    return map;
+  }, [sp12Songs, sp11Songs, spDiffLabels]);
+
   const processed = useMemo(() => {
     const clearUpdates: { [key: string]: any } = { 'SP': [], 'DP': [] };
     const scoreUpdates: { [key: string]: any } = { 'SP': [], 'DP': [] };
@@ -187,6 +236,15 @@ const DiffPage = () => {
             const lv = chartInfo[id]?.level?.[m.toLowerCase()]?.[idx] ?? 'N/A';
             const notes = chartInfo[id]?.notes?.[m.toLowerCase()]?.[idx] ?? 0;
             const title = titleMap[id] || id;
+            const diffInfo = diffTableMap[`${id}_${difficulty}`];
+            const clearDiffLabel = diffInfo?.clearLabel ?? '';
+            const hardDiffLabel = diffInfo?.hardLabel ?? '';
+            const clearDiffValue = diffInfo?.clearValue ?? 0;
+            const tableLv = diffInfo?.tableLv ?? 0;
+            const dpDiffValue = m === 'DP' ? (dpDiffMap[`${id}_${difficulty}`] ?? 0) : 0;
+            const diffSortValue = m === 'DP'
+              ? dpDiffValue * 100
+              : diffInfo ? diffInfo.tableLv * 10000 + diffInfo.clearValue : 0;
 
             if (entry?.cleartype?.new !== entry?.cleartype?.old && entry?.cleartype?.new > 1) {
               clearUpdatesCount[m]++;
@@ -197,6 +255,7 @@ const DiffPage = () => {
                 after: entry.cleartype.new,
                 colorBefore: clearColorMap[entry.cleartype.old],
                 colorAfter: clearColorMap[entry.cleartype.new],
+                clearDiffLabel, hardDiffLabel, clearDiffValue, tableLv, dpDiffValue, diffSortValue,
               });
             }
 
@@ -207,7 +266,7 @@ const DiffPage = () => {
               const pAfter = getPercentage(entry.score.new, notes);
               const bpiInfoEntry = bpiInfo?.[m]?.[id]?.[difficulty];
               const bpi = bpiInfoEntry ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, entry.score.new, bpiInfoEntry.coef) : NaN;
-              if(!Number.isNaN(bpi)){
+              if (!Number.isNaN(bpi)) {
                 isContainBpi[m] = true;
               }
               scoreUpdates[m].push({
@@ -217,6 +276,7 @@ const DiffPage = () => {
                 beforeRate: pBefore,
                 afterRate: pAfter,
                 diff: entry.score.new - entry.score.old,
+                clearDiffLabel, hardDiffLabel, clearDiffValue, tableLv, dpDiffValue, diffSortValue,
               });
             }
 
@@ -227,6 +287,7 @@ const DiffPage = () => {
                 id, title, difficulty, lv,
                 afterMisscount: entry.misscount.new === defaultMisscount ? '-' : entry.misscount.new,
                 diff: entry.misscount.old === defaultMisscount ? defaultMisscount : entry.misscount.new - entry.misscount.old,
+                clearDiffLabel, hardDiffLabel, clearDiffValue, tableLv, dpDiffValue, diffSortValue,
               });
             }
           }
@@ -249,7 +310,7 @@ const DiffPage = () => {
       },
       clearUpdatesCount, scoreUpdatesCount, missUpdatesCount, isContainBpi
     };
-  }, [diff, chartInfo, titleMap, excludeNewSongs]);
+  }, [diff, chartInfo, titleMap, excludeNewSongs, diffTableMap, dpDiffMap]);
 
   const hasUpdates = processed.clearUpdates[mode].length > 0 || processed.scoreUpdates[mode].length > 0 || processed.missUpdates[mode].length > 0;
 
@@ -285,7 +346,7 @@ const DiffPage = () => {
   ) : null;
 
   const handleSelectSong = (songId: string, difficultyNumber: number) => {
-    if(!isShared){
+    if (!isShared) {
       navigate(`/edit/${songId}/${difficultyNumber}`);
     }
   };
@@ -312,6 +373,7 @@ const DiffPage = () => {
                   <TableHead>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                       <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('clear', 'lv')}>☆</TableCell>
+                      <TableCell sx={{ cursor: 'pointer', minWidth: 110 }} onClick={() => handleSort('clear', 'tableLevel')}>{mode === 'DP' ? '非公式難易度' : '難易度表(EC/HC)'}</TableCell>
                       <TableCell onClick={() => handleSort('clear', 'title')}>Title</TableCell>
                       <TableCell sx={{ textAlign: 'center' }} onClick={() => handleSort('clear', 'beforeLamp')}>Before</TableCell>
                       <TableCell />
@@ -324,7 +386,13 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
+                          <TableCell>
+                            {row.dpDiffValue > 0
+                              ? <Typography variant="caption">{row.dpDiffValue.toFixed(1)}</Typography>
+                              : (row.clearDiffLabel || row.hardDiffLabel) && <Typography variant="caption">{[row.clearDiffLabel, row.hardDiffLabel].filter(Boolean).join('/')}</Typography>
+                            }
+                          </TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorBefore }}>{simpleClearName[row.before]}</Box></TableCell>
                           <TableCell sx={{ px: 0, textAlign: 'center' }}>→</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorAfter }}>{simpleClearName[row.after]}</Box></TableCell>
@@ -332,9 +400,9 @@ const DiffPage = () => {
 
                         {/* Mobile */}
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
-                          <TableCell colSpan={5} sx={{ py: 1.25 }}>
+                          <TableCell colSpan={6} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''} ☆{row.lv}{row.dpDiffValue > 0 ? ` (${row.dpDiffValue.toFixed(1)})` : (row.clearDiffLabel || row.hardDiffLabel) ? ` (${[row.clearDiffLabel, row.hardDiffLabel].filter(Boolean).join('/')})` : ''}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: 12 }}>
                               <Box sx={{ px: 1, borderRadius: 1, bgcolor: row.colorBefore }}>{simpleClearName[row.before]}</Box>
@@ -373,7 +441,7 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''}</TableCell>
                           {processed.isContainBpi[mode] && <TableCell>{Number.isNaN(row.bpi) ? '' : row.bpi}</TableCell>}
                           <TableCell>{getGrade(row.afterRate)} ({getDetailGrade(row.afterScore, row.notes)})</TableCell>
                           <TableCell>{row.afterScore} ({(row.afterRate * 100).toFixed(2)}%)</TableCell>
@@ -382,9 +450,9 @@ const DiffPage = () => {
 
                         {/* Mobile */}
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
-                          <TableCell colSpan={5} sx={{ py: 1.25 }}>
+                          <TableCell colSpan={6} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''} ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 1.25, color: 'text.secondary', fontSize: 12 }}>
                               {!Number.isNaN(row.bpi) && <span>BPI: {row.bpi}</span>}
@@ -422,16 +490,16 @@ const DiffPage = () => {
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>
-                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''}</TableCell>
+                          <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{row.afterMisscount}</TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>{row.diff !== defaultMisscount ? row.diff : ''}</TableCell>
                         </TableRow>
 
                         {/* Mobile */}
                         <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
-                          <TableCell colSpan={4} sx={{ py: 1.25 }}>
+                          <TableCell colSpan={5} sx={{ py: 1.25 }}>
                             <Typography variant="body2" fontWeight={700} noWrap>
-                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)': ''} ／ ☆{row.lv}
+                              {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''} ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', gap: 1.25, color: 'text.secondary', fontSize: 12 }}>
                               <span>BP: {row.afterMisscount}</span>
