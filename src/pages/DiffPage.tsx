@@ -378,7 +378,7 @@ const DiffPage = () => {
                   <TableHead>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                       <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('clear', 'lv')}>☆</TableCell>
-                      <TableCell sx={{ cursor: 'pointer', minWidth: 110 }} onClick={() => handleSort('clear', 'tableLevel')}>{mode === 'DP' ? '非公式難易度' : '難易度表(EC/HC)'}</TableCell>
+                      <TableCell sx={{ cursor: 'pointer', minWidth: 160 }} onClick={() => handleSort('clear', 'tableLevel')}>{mode === 'DP' ? '非公式難易度' : '難易度表(EC/HC)'}</TableCell>
                       <TableCell onClick={() => handleSort('clear', 'title')}>Title</TableCell>
                       <TableCell sx={{ textAlign: 'center' }} onClick={() => handleSort('clear', 'beforeLamp')}>Before</TableCell>
                       <TableCell />

@@ -38,7 +38,7 @@ const LampAchieveProgress: React.FC<LampAchieveProgressProps> = ({ stats, totalC
             />
             <Typography
               variant="caption"
-              sx={{ width: { xs: 40, sm: 80 }, flexShrink: 0, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'text.secondary', fontSize: { xs: '0.68rem', sm: undefined } }}
+              sx={{ width: { xs: 50, sm: 100 }, flexShrink: 0, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'text.secondary', fontSize: { xs: '0.68rem', sm: undefined } }}
             >
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                 {count}/{totalCount}{' '}
