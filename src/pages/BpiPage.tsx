@@ -15,7 +15,7 @@ import { useFilters } from '../context/FilterContext';
 import { useDataContext } from '../context/DataContext';
 import FilterPanel from '../components/FilterPanel';
 import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
-import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
+import { convertDataToIdDiffKey, songKey } from '../utils/scoreDataUtils';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { isMatchSong } from '../utils/filterUtils';
 import { getTitleFontSize } from '../utils/uiUtils';
@@ -78,7 +78,7 @@ const BpiPage = () => {
       sections[range].push(song);
     });
     Object.keys(sections).forEach((range) => {
-      sections[range] = sections[range].sort((a, b) => b[gradeType] - a[gradeType]);
+      sections[range] = sections[range].slice().sort((a, b) => b[gradeType] - a[gradeType]);
     });
     const sortedRanges = Object.keys(sections).sort((a, b) => parseInt(b) - parseInt(a));
     return { sortedRanges, sections };
@@ -88,7 +88,7 @@ const BpiPage = () => {
     return songs
       .filter((song) => song.level === level)
       .filter((song) => {
-        const key = `${song.id}_${song.difficulty}`;
+        const key = songKey(song.id, song.difficulty);
         const lamp = clearData[key] ?? 0;
         const konami = konamiInfInfo[song.id] || {};
         const chart = chartInfo[song.id] || {};
@@ -98,7 +98,7 @@ const BpiPage = () => {
         return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
       })
       .map((song) => {
-        const key = `${song.id}_${song.difficulty}`;
+        const key = songKey(song.id, song.difficulty);
         const score = scoreData[key] ?? 0;
         const notes = song.notes ?? 0;
         const wr = song.wr ?? 0;
@@ -130,7 +130,7 @@ const BpiPage = () => {
     let k = Math.log2(n);
     if (k === 0) k = 1;
     const totalBpiValue = filteredLevelSongs.reduce((sum, song) => {
-      const key = `${song.id}_${song.difficulty}`;
+      const key = songKey(song.id, song.difficulty);
       const score = scoreData[key] ?? 0;
       const notes = song.notes ?? 0;
       const wr = song.wr ?? 0;
@@ -154,7 +154,7 @@ const BpiPage = () => {
   const achievementRates = useMemo(() => {
     const gradeCounts: Record<string, number> = { 'A': 0, 'AA': 0, 'AAA': 0, 'MAX-': 0 };
     filteredSongs.forEach((song) => {
-      const key = `${song.id}_${song.difficulty}`;
+      const key = songKey(song.id, song.difficulty);
       const score = scoreData[key] ?? 0;
       const percentage = getPercentage(score, song.notes);
       if (percentage >= 8 / 9) gradeCounts['AAA']++;
@@ -246,7 +246,7 @@ const BpiPage = () => {
               </Typography>
               <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {sections[range].map((song) => {
-                  const key = `${song.id}_${song.difficulty}`;
+                  const key = songKey(song.id, song.difficulty);
                   const title = titleMap[song.id];
                   const displayTitle = `${title}[${song.difficulty}]`;
                   const colorGrade = song.percentage >= 17 / 18 ? 'MAX-' : song.grade;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Container, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Backdrop, Tabs, Tab
 } from '@mui/material';
@@ -99,7 +99,7 @@ const RadarPage = () => {
 
   const totalAverage = Object.values(topAverages).reduce((sum, v) => sum + v, 0).toFixed(2);
 
-  const renderAngleTick = (props: any) => {
+  const renderAngleTick = useCallback((props: any) => {
     const { x, y, payload } = props;
     const angle = payload?.coordinate;
     let dy = 0;
@@ -109,7 +109,7 @@ const RadarPage = () => {
         {payload?.value}
       </text>
     );
-  };
+  }, [isXs]);
 
   return (
     <Page>

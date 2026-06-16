@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop
+  Container, Typography, Grid, Box, Tabs, Tab, CircularProgress, Backdrop
 } from '@mui/material';
 import { useMode } from '../context/ModeContext';
 import { useFilters } from '../context/FilterContext';
@@ -11,12 +11,12 @@ import SectionCard from '../components/SectionCard';
 import { Page, PageHeader } from '../components/Page';
 import { clearColorMap } from '../constants/colorConstrains';
 import { cpiClearMap } from '../constants/clearConstrains';
-import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
+import { convertDataToIdDiffKey, songKey } from '../utils/scoreDataUtils';
 import { isMatchSong } from '../utils/filterUtils';
-import { getTitleFontSize } from '../utils/uiUtils';
+import SongCard from '../components/SongCard';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
-import { useNavigate } from 'react-router-dom';
+
 import { difficultyKey } from '../constants/difficultyConstrains';
 
 const CpiPage = () => {
@@ -30,7 +30,6 @@ const CpiPage = () => {
   const [clearData, setClearData] = useState<{ [key: string]: number }>({});
   const [missData, setMissData] = useState<{ [key: string]: number }>({});
   const [unlockedData, setUnlockedData] = useState<{ [key: string]: boolean }>({});
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +55,7 @@ const CpiPage = () => {
   const filteredSongs = useMemo(() => songs.filter(song => {
     const value = song[activeTab]?.cpi_value;
     if (value == null) return false;
-    const key = `${song.id}_${song.difficulty}`;
+    const key = songKey(song.id, song.difficulty);
     const lamp = clearData[key] ?? 0;
     const konami = konamiInfInfo[song.id] || {};
     const chart = chartInfo[song.id] || {};
@@ -130,40 +129,22 @@ const CpiPage = () => {
                 {group.songs
                   .sort((a, b) => (b[activeTab]?.cpi_value ?? 0) - (a[activeTab]?.cpi_value ?? 0))
                   .map(song => {
-                    const key = `${song.id}_${song.difficulty}`;
+                    const key = songKey(song.id, song.difficulty);
                     const lamp = clearData[key] ?? 0;
-                    const bg = clearColorMap[lamp] ?? '#FFFFFF';
-                    const diffLabel = song.difficulty === 'A' ? '' : `[${song.difficulty}]`;
-                    const title = titleMap[song.id] || song.id;
+                    const diffLabel = song.difficulty === 'A' ? '' : ` [${song.difficulty}]`;
+                    const title = `${titleMap[song.id] || song.id}${diffLabel}`;
                     const cpiValue = song[activeTab]?.cpi_value;
-                    const displayTitle = `${title} ${diffLabel}`;
                     return (
-                      <Grid item xs={1} sm={4} md={2} key={key} sx={{ minWidth: 0 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 1, sm: 1.2 }, height: '100%', backgroundColor: bg }}>
-                          <Typography
-                            variant="body2"
-                            fontWeight="bold"
-                            sx={{
-                              fontSize: getTitleFontSize(displayTitle),
-                              whiteSpace: 'normal',
-                              overflowWrap: 'anywhere',
-                              wordBreak: 'break-word',
-                              lineHeight: 1.35,
-                            }}
-                            onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
-                          >
-                            {displayTitle}
-                          </Typography>
-                          {cpiValue !== -2 && (
-                            <Typography variant="caption" display="block" sx={metaTextSx}>
-                              CPI: {cpiValue === -1 ? 'Infinity' : cpiValue}
-                            </Typography>
-                          )}
+                      <SongCard key={key} songId={song.id} difficultyIndex={difficultyKey.indexOf(song.difficulty)} title={title} backgroundColor={clearColorMap[lamp] ?? '#FFFFFF'}>
+                        {cpiValue !== -2 && (
                           <Typography variant="caption" display="block" sx={metaTextSx}>
-                            MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
+                            CPI: {cpiValue === -1 ? 'Infinity' : cpiValue}
                           </Typography>
-                        </Paper>
-                      </Grid>
+                        )}
+                        <Typography variant="caption" display="block" sx={metaTextSx}>
+                          MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
+                        </Typography>
+                      </SongCard>
                     );
                   })}
               </Grid>

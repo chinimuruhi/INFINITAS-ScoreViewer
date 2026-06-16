@@ -30,6 +30,7 @@ import { acInfDiffMap } from '../constants/titleConstrains';
 import { useNavigate } from 'react-router-dom';
 import { difficultyKey } from '../constants/difficultyConstrains';
 import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
+import { songKey } from '../utils/scoreDataUtils';
 
 const urlLengthMax = 4088;
 
@@ -136,7 +137,7 @@ const DiffPage = () => {
   };
 
   const sortedData = (data: any[], key: string, direction: 'asc' | 'desc') =>
-    data.sort((a, b) => {
+    [...data].sort((a, b) => {
       const cmp = (x: number, y: number) => (direction === 'asc' ? x - y : y - x);
       if (key === 'lv') return cmp(a.lv, b.lv);
       if (key === 'title') return direction === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
@@ -195,7 +196,7 @@ const DiffPage = () => {
     const map: Record<string, number> = {};
     Object.entries(dpSongsDict).forEach(([id, diffs]) => {
       Object.entries(diffs).forEach(([diff, entry]) => {
-        map[`${id}_${diff}`] = entry.value;
+        map[songKey(id, diff)] = entry.value;
       });
     });
     return map;
@@ -205,7 +206,7 @@ const DiffPage = () => {
   const diffTableMap = useMemo(() => {
     const map: Record<string, { clearLabel: string; hardLabel: string; clearValue: number; tableLv: number }> = {};
     sp12Songs.forEach(song => {
-      map[`${song.id}_${song.difficulty}`] = {
+      map[songKey(song.id, song.difficulty)] = {
         clearLabel: spDiffLabels.sp12['normal']?.[String(song.n_value)] ?? '',
         hardLabel: spDiffLabels.sp12['hard']?.[String(song.h_value)] ?? '',
         clearValue: song.n_value ?? 0,
@@ -213,7 +214,7 @@ const DiffPage = () => {
       };
     });
     sp11Songs.forEach(song => {
-      map[`${song.id}_${song.difficulty}`] = {
+      map[songKey(song.id, song.difficulty)] = {
         clearLabel: spDiffLabels.sp11['normal']?.[String(song.n_value)] ?? '',
         hardLabel: spDiffLabels.sp11['hard']?.[String(song.h_value)] ?? '',
         clearValue: song.n_value ?? 0,
@@ -241,12 +242,12 @@ const DiffPage = () => {
             const lv = chartInfo[id]?.level?.[m.toLowerCase()]?.[idx] ?? 'N/A';
             const notes = chartInfo[id]?.notes?.[m.toLowerCase()]?.[idx] ?? 0;
             const title = titleMap[id] || id;
-            const diffInfo = diffTableMap[`${id}_${difficulty}`];
+            const diffInfo = diffTableMap[songKey(id, difficulty)];
             const clearDiffLabel = diffInfo?.clearLabel ?? '';
             const hardDiffLabel = diffInfo?.hardLabel ?? '';
             const clearDiffValue = diffInfo?.clearValue ?? 0;
             const tableLv = diffInfo?.tableLv ?? 0;
-            const dpDiffValue = m === 'DP' ? (dpDiffMap[`${id}_${difficulty}`] ?? 0) : 0;
+            const dpDiffValue = m === 'DP' ? (dpDiffMap[songKey(id, difficulty)] ?? 0) : 0;
             const diffSortValue = m === 'DP'
               ? dpDiffValue * 100
               : diffInfo ? diffInfo.tableLv * 10000 + diffInfo.clearValue : 0;
@@ -387,7 +388,7 @@ const DiffPage = () => {
                   </TableHead>
                   <TableBody>
                     {sortedDataWithState(processed.clearUpdates[mode], 'clear').map((row) => (
-                      <React.Fragment key={`${row.id}_${row.difficulty}`}>
+                      <React.Fragment key={songKey(row.id, row.difficulty)}>
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>
@@ -442,7 +443,7 @@ const DiffPage = () => {
                   </TableHead>
                   <TableBody>
                     {sortedDataWithState(processed.scoreUpdates[mode], 'score').map((row) => (
-                      <React.Fragment key={`${row.id}_${row.difficulty}`}>
+                      <React.Fragment key={songKey(row.id, row.difficulty)}>
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>
@@ -491,7 +492,7 @@ const DiffPage = () => {
                   </TableHead>
                   <TableBody>
                     {sortedDataWithState(processed.missUpdates[mode], 'miss').map((row) => (
-                      <React.Fragment key={`${row.id}_${row.difficulty}`}>
+                      <React.Fragment key={songKey(row.id, row.difficulty)}>
                         {/* PC/Tablet */}
                         <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => handleSelectSong(row.id, difficultyKey.indexOf(row.difficulty))}>
                           <TableCell>☆{row.lv}</TableCell>

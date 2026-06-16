@@ -1,4 +1,5 @@
 import { achiveTargetClearMap } from '../constants/clearConstrains';
+import { songKey } from './scoreDataUtils';
 
 // ランプ達成数カウント
 export const getLampAchiveCount = (filteredSongs: any[], clearData: any) => {
@@ -9,7 +10,7 @@ export const getLampAchiveCount = (filteredSongs: any[], clearData: any) => {
   Object.keys(achiveTargetClearMap).forEach((key) => {
     const threshold = achiveTargetClearMap[key as keyof typeof achiveTargetClearMap];
     result[key] = filteredSongs.filter((s) =>
-      lampAchieved(clearData[`${s.id}_${s.difficulty}`] || 0, threshold)
+      lampAchieved(clearData[songKey(s.id, s.difficulty)] || 0, threshold)
     ).length;
   });
 

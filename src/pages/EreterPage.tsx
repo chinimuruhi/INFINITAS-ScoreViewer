@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
-  Container, Typography, Grid, Paper, Box, Tabs, Tab, CircularProgress, Backdrop, LinearProgress
+  Container, Typography, Grid, Box, Tabs, Tab, CircularProgress, Backdrop
 } from '@mui/material';
 import FilterPanel from '../components/FilterPanel';
 import LampAchieveProgress from '../components/LampAchieveProgress';
@@ -8,14 +8,14 @@ import { useMode } from '../context/ModeContext';
 import { useFilters } from '../context/FilterContext';
 import { useDataContext } from '../context/DataContext';
 import { clearColorMap } from '../constants/colorConstrains';
-import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
+import { convertDataToIdDiffKey, songKey } from '../utils/scoreDataUtils';
 import { isMatchSong } from '../utils/filterUtils';
-import { getTitleFontSize } from '../utils/uiUtils';
+import SongCard from '../components/SongCard';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getLampAchiveCount } from '../utils/lampUtils';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
-import { useNavigate } from 'react-router-dom';
+
 import { difficultyKey } from '../constants/difficultyConstrains';
 
 const EreterPage = () => {
@@ -29,7 +29,6 @@ const EreterPage = () => {
   const [unlockedData, setUnlockedData] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState<'easy' | 'hard' | 'exhard'>('easy');
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,7 +54,7 @@ const EreterPage = () => {
   const diffValueKey = { easy: 'ec_diff', hard: 'hc_diff', exhard: 'exh_diff' };
 
   const filteredSongs = useMemo(() => songs.filter(song => {
-    const key = `${song.id}_${song.difficulty}`;
+    const key = songKey(song.id, song.difficulty);
     const lamp = clearData[key] ?? 0;
     const konami = konamiInfInfo[song.id] || {};
     const chart = chartInfo[song.id] || {};
@@ -103,41 +102,20 @@ const EreterPage = () => {
                   .slice()
                   .sort((a, b) => b[diffValueKey[activeTab]] - a[diffValueKey[activeTab]])
                   .map(song => {
-                    const key = `${song.id}_${song.difficulty}`;
+                    const key = songKey(song.id, song.difficulty);
                     const lamp = clearData[key] ?? 0;
-                    const bg = clearColorMap[lamp];
-                    const title = titleMap[song.id] || song.id;
-                    const diffLabel =
-                      song.difficulty === 'A' ? '[A]' :
-                        song.difficulty === 'H' ? '[H]' :
-                          song.difficulty === 'L' ? '[L]' : '';
+                    const diffLabel = song.difficulty === 'A' ? ' [A]' : song.difficulty === 'H' ? ' [H]' : song.difficulty === 'L' ? ' [L]' : '';
+                    const title = `${titleMap[song.id] || song.id}${diffLabel}`;
                     const detailedDiff = song[diffValueKey[activeTab]];
-                    const displayTitle = `${title} ${diffLabel}`;
                     return (
-                      <Grid item xs={1} sm={4} md={2} key={key} sx={{ minWidth: 0 }}>
-                        <Paper elevation={3} sx={{ p: { xs: 1, sm: 1.2 }, height: '100%', backgroundColor: bg }}>
-                          <Typography
-                            variant="body2"
-                            fontWeight="bold"
-                            sx={{
-                              fontSize: getTitleFontSize(displayTitle),
-                              whiteSpace: 'normal',
-                              overflowWrap: 'anywhere',
-                              wordBreak: 'break-word',
-                              lineHeight: 1.35,
-                            }}
-                            onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
-                          >
-                            {displayTitle}
-                          </Typography>
-                          <Typography variant="caption" display="block">
-                            ★{detailedDiff.toFixed(1)}
-                          </Typography>
-                          <Typography variant="caption" display="block">
-                            MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
-                          </Typography>
-                        </Paper>
-                      </Grid>
+                      <SongCard key={key} songId={song.id} difficultyIndex={difficultyKey.indexOf(song.difficulty)} title={title} backgroundColor={clearColorMap[lamp]}>
+                        <Typography variant="caption" display="block">
+                          ★{detailedDiff.toFixed(1)}
+                        </Typography>
+                        <Typography variant="caption" display="block">
+                          MISS: {missData[key] == null || missData[key] === defaultMisscount ? '-' : missData[key]}
+                        </Typography>
+                      </SongCard>
                     );
                   })}
               </Grid>

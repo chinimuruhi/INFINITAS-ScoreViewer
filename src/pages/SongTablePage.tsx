@@ -22,7 +22,7 @@ import { defaultMisscount } from '../constants/defaultValues';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { generateSearchText } from '../utils/titleUtils';
 import { isMatchSong } from '../utils/filterUtils';
-import { convertDataToIdDiffKey } from '../utils/scoreDataUtils';
+import { convertDataToIdDiffKey, songKey } from '../utils/scoreDataUtils';
 import { acInfDiffMap } from '../constants/titleConstrains';
 import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
 
@@ -132,7 +132,7 @@ const SongTablePage: React.FC = () => {
             if (!lv) continue;
             const notes = c.notes?.[mode.toLowerCase()]?.[diffIndex] ?? 0;
             const title = titleRes[id] ?? id;
-            const key = `${id}_${diff}`;
+            const key = songKey(id, diff);
             const lamp = clearRes[key] ?? 0;
             const score = scoreRes[key] ?? 0;
             const rate = getPercentage(score, notes);
@@ -157,7 +157,7 @@ const SongTablePage: React.FC = () => {
     return songs.filter(s => {
       if (query && !s.normalizedTitle.includes(query)) return false;
       if (s.level !== selectedLevel) return false;
-      const key = `${s.id}_${s.difficulty}`;
+      const key = songKey(s.id, s.difficulty);
       const lamp = clearData[key] ?? 0;
       const konami = konamiInfInfo[s.id] || {};
       const chart = chartInfo[s.id] || {};
@@ -257,7 +257,7 @@ const SongTablePage: React.FC = () => {
               </TableHead>
               <TableBody>
                 {sorted.map((s) => (
-                  <React.Fragment key={`${s.id}_${s.difficulty}`}>
+                  <React.Fragment key={songKey(s.id, s.difficulty)}>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} hover onClick={() => handleSelectSong(s.id, String(s.diffIndex))} style={{ cursor: 'pointer' }}>
                       <TableCell>⭐︎{s.level}</TableCell>
                       <TableCell>

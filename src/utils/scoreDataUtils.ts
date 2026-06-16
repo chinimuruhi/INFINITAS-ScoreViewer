@@ -366,3 +366,5 @@ export const convertDataToIdDiffKey = (data: any, mode: 'SP' | 'DP') => {
 
   return { score, clear, misscount, unlocked }
 }
+
+export const songKey = (id: string, difficulty: string): string => `${id}_${difficulty}`;
