@@ -43,6 +43,10 @@ export const replaceTitle: ReplaceEntry[] = [
         from: '♥LOVE² シュガ→♥',
         to: 'LOVE2シュガ→'
     },
+    {
+        from: 'Lagrangian Point ?',
+        to: 'LagrangianPointO'
+    },
     // daken counter
     {
         from: 'uan',
