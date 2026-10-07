@@ -24,6 +24,7 @@ import Sp11TablePage from './pages/Sp11TablePage';
 import DpTablePage from './pages/DpTablePage';
 import CpiPage from './pages/CpiPage';
 import BpiPage from './pages/BpiPage';
+import Bpim2Page from './pages/Bpim2Page';
 import EreterPage from './pages/EreterPage';
 import RadarPage from './pages/RadarPage';
 import SettingsPage from './pages/SettingsPage';
@@ -51,7 +52,8 @@ const AppShell: React.FC = () => {
     { text: 'SP☆11難易度表', path: '/sp11', mode: 'SP', icon: <GridViewRoundedIcon /> },
     { text: 'DP非公式難易度表', path: '/dp', mode: 'DP', icon: <GridViewRoundedIcon /> },
     { text: 'CPI', path: '/cpi', mode: 'SP', icon: <GridViewRoundedIcon /> },
-    { text: 'BPI', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon /> },
+    { text: 'BPIM', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon /> },
+    { text: 'BPIM2', path: '/bpim2', mode: 'SP', icon: <GridViewRoundedIcon /> },
     { text: 'ereter.net', path: '/ereter', mode: 'DP', icon: <GridViewRoundedIcon /> },
     { text: 'ノーツレーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon /> },
     { text: '楽曲一覧', path: '/songtable', mode: 'both', icon: <TableRowsIcon /> },
@@ -250,6 +252,14 @@ const AppShell: React.FC = () => {
             }
           />
           <Route path="/bpi" element={<BpiPage />} />
+          <Route
+            path="/bpim2"
+            element={
+              mode === 'SP'
+                ? <Bpim2Page />
+                : <Typography>このページはSPモードでのみ利用可能です。</Typography>
+            }
+          />
           <Route
             path="/ereter"
             element={

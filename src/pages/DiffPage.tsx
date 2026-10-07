@@ -30,9 +30,11 @@ import { acInfDiffMap } from '../constants/titleConstrains';
 import { useNavigate } from 'react-router-dom';
 import { difficultyKey } from '../constants/difficultyConstrains';
 import { resolveVersionByIndex, calculateBpi } from '../utils/bpiUtils';
+import { calculateBpim2 } from '../utils/bpim2Utils';
 import { songKey } from '../utils/scoreDataUtils';
 
 const urlLengthMax = 4088;
+const bpiLabel: { [key: string]: string } = { 'SP': 'BPI2', 'DP': 'BPI' };
 
 const DiffPage = () => {
   const { mode, setMode } = useAppContext();
@@ -55,7 +57,7 @@ const DiffPage = () => {
 
   // ソート（デフォルト: 難易度表順）
   const [clearSortConfig, setClearSortConfig] = useState<{ key: string; direction: string }>({ key: 'default', direction: 'desc' });
-  const [scoreSortConfig, setScoreSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
+  const [scoreSortConfig, setScoreSortConfig] = useState<{ key: string; direction: string }>({ key: 'lvBpi', direction: 'desc' });
   const [missSortConfig, setMissSortConfig] = useState<{ key: string; direction: string }>({ key: 'tableLevel', direction: 'desc' });
   const navigate = useNavigate();
 
@@ -66,7 +68,7 @@ const DiffPage = () => {
       const [titleRes, chartGz, bpiSpInfo, bpiDpInfo] = await Promise.all([
         fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/title.json').then((res) => res.json()),
         fetch('https://chinimuruhi.github.io/IIDX-Data-Table/textage/chart-info.json.gz').then((res) => res.arrayBuffer()),
-        fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/sp_dict.json`).then((res) => res.json()),
+        fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpim2/sp_dict.json`).then((res) => res.json()),
         fetch(`https://chinimuruhi.github.io/IIDX-Data-Table/bpi/${bpiVersion}/dp_dict.json`).then((res) => res.json()),
       ]);
       setTitleMap(titleRes);
@@ -146,6 +148,16 @@ const DiffPage = () => {
       if (key === 'grade') return cmp(a.afterRate, b.afterRate);
       if (key === 'score') return cmp(a.afterScore, b.afterScore);
       if (key === 'bpi') {
+        const aBpi = Number.isNaN(a.bpi) ? -99 : a.bpi;
+        const bBpi = Number.isNaN(b.bpi) ? -99 : b.bpi;
+        if (aBpi !== bBpi) return cmp(aBpi, bBpi);
+        // BPIが同値(未定義含む)の場合は難易度表順
+        if (a.diffSortValue !== b.diffSortValue) return cmp(a.diffSortValue, b.diffSortValue);
+        return cmp(a.lv, b.lv);
+      }
+      if (key === 'lvBpi') {
+        // ☆順、同じ☆の中はBPI順
+        if (a.lv !== b.lv) return cmp(a.lv, b.lv);
         const aBpi = Number.isNaN(a.bpi) ? -99 : a.bpi;
         const bBpi = Number.isNaN(b.bpi) ? -99 : b.bpi;
         return cmp(aBpi, bBpi);
@@ -271,7 +283,10 @@ const DiffPage = () => {
               const pBefore = getPercentage(entry.score.old, notes);
               const pAfter = getPercentage(entry.score.new, notes);
               const bpiInfoEntry = bpiInfo?.[m]?.[id]?.[difficulty];
-              const bpi = bpiInfoEntry ? calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, entry.score.new, bpiInfoEntry.coef) : NaN;
+              // SPはBPIM2(BPI V2)、DPは従来のBPI
+              const bpi = !bpiInfoEntry ? NaN
+                : m === 'SP' ? (calculateBpim2(bpiInfoEntry, entry.score.new) ?? NaN)
+                : (calculateBpi(bpiInfoEntry.wr, bpiInfoEntry.avg, bpiInfoEntry.notes, entry.score.new, bpiInfoEntry.coef) ?? NaN);
               if (!Number.isNaN(bpi)) {
                 isContainBpi[m] = true;
               }
@@ -316,7 +331,7 @@ const DiffPage = () => {
       },
       clearUpdatesCount, scoreUpdatesCount, missUpdatesCount, isContainBpi
     };
-  }, [diff, chartInfo, titleMap, excludeNewSongs, diffTableMap, dpDiffMap]);
+  }, [diff, chartInfo, titleMap, excludeNewSongs, diffTableMap, dpDiffMap, bpiInfo]);
 
   const hasUpdates = processed.clearUpdates[mode].length > 0 || processed.scoreUpdates[mode].length > 0 || processed.missUpdates[mode].length > 0;
 
@@ -435,7 +450,7 @@ const DiffPage = () => {
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
                       <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('score', 'lv')}>☆</TableCell>
                       <TableCell onClick={() => handleSort('score', 'title')}>Title</TableCell>
-                      {processed.isContainBpi[mode] && <TableCell onClick={() => handleSort('score', 'bpi')}>BPI</TableCell>}
+                      {processed.isContainBpi[mode] && <TableCell onClick={() => handleSort('score', 'bpi')}>{bpiLabel[mode]}</TableCell>}
                       <TableCell onClick={() => handleSort('score', 'grade')}>Grade</TableCell>
                       <TableCell onClick={() => handleSort('score', 'score')}>Score</TableCell>
                       <TableCell onClick={() => handleSort('score', 'diff')}>Diff</TableCell>
@@ -461,7 +476,7 @@ const DiffPage = () => {
                               {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''} ☆{row.lv}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 1.25, color: 'text.secondary', fontSize: 12 }}>
-                              {!Number.isNaN(row.bpi) && <span>BPI: {row.bpi}</span>}
+                              {!Number.isNaN(row.bpi) && <span>{bpiLabel[mode]}: {row.bpi}</span>}
                               <span>{getGrade(row.afterRate)} ({getDetailGrade(row.afterScore, row.notes)})</span>
                               <span>{row.afterScore} ({(row.afterRate * 100).toFixed(1)}%)</span>
                               <span>Diff: +{row.diff}</span>
