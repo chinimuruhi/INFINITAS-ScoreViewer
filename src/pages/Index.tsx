@@ -84,8 +84,8 @@ const Index: React.FC = () => {
               </ItemLink>
             </li>
             <li><ItemLink href="https://cpi.makecir.com/">Clear Power Indicator(CPI)</ItemLink></li>
-            <li><ItemLink href="https://bpi.poyashi.me/">Beat Power Indicator Manager(BPI)</ItemLink></li>
-            <li><ItemLink href="https://bpi2.poyashi.me/">Beat Power Indicator Manager2(BPI)</ItemLink></li>
+            <li><ItemLink href="https://bpi.poyashi.me/">Beat Power Indicator Manager(BPIM)</ItemLink></li>
+            <li><ItemLink href="https://bpi2.poyashi.me/">Beat Power Indicator Manager2(BPIM2)</ItemLink></li>
             <li><ItemLink href="https://bm2dx.com/IIDX/notes_radar/">ノーツレーダー</ItemLink></li>
             <li><ItemLink href="https://zasa.sakura.ne.jp/dp/">DP非公式難易度表</ItemLink></li>
             <li><ItemLink href="http://ereter.net/iidxsongs/analytics/combined/">ereter's dp laboratory</ItemLink></li>
