@@ -1,0 +1,16 @@
+<!-- アプリアイコンの元データ。PNG は scripts/icon/README.md の手順で書き出す -->
+<!-- 図と文字は中心から半径 410px（Android の切り抜き安全範囲）以内に収める -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1C1B19"/>
+  <!-- 集計を表す棒グラフ（一番高い棒のみ差し色） -->
+  <g fill="#F4F1E9">
+    <rect x="300" y="430" width="70" height="150"/>
+    <rect x="418" y="350" width="70" height="230"/>
+    <rect x="536" y="390" width="70" height="190"/>
+  </g>
+  <rect x="654" y="270" width="70" height="310" fill="#E2825F"/>
+  <rect x="280" y="596" width="464" height="10" fill="#A7A194"/>
+  <text x="512" y="742" dy="0.35em" text-anchor="middle"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700"
+        font-size="150" letter-spacing="6" fill="#F4F1E9">INF SV</text>
+</svg>

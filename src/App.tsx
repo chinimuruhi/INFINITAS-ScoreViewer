@@ -18,6 +18,9 @@ import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 
 import { useMode } from './context/ModeContext';
+import BottomNav, { NavItem } from './components/BottomNav';
+import { bottomNavHeight, bottomNavMedia, bottomNavQuery } from './constants/layoutConstrains';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useColorMode } from './context/ColorModeContext';
 
 import CsvLoaderPage from './pages/CsvLoaderPage';
@@ -44,24 +47,26 @@ const AppShell: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  // スマホ・タブレット（指で操作する端末）と狭い画面では画面下にナビを出す
+  const showBottomNav = useMediaQuery(bottomNavQuery);
 
   const toggleDrawer = (open: boolean) => () => setDrawerOpen(open);
 
-  const menuItems: Array<{ text: string; path: string; mode: VisibleMode; icon: React.ReactNode }> = [
-    { text: 'Top', path: '/', mode: 'both', icon: <HomeRoundedIcon /> },
-    { text: 'スコアCSV/TSV読み込み', path: '/register', mode: 'both', icon: <UploadRoundedIcon /> },
-    { text: 'スコア手動登録', path: '/edit', mode: 'both', icon: <EditNoteRoundedIcon /> },
-    { text: '更新差分', path: '/diff', mode: 'both', icon: <DifferenceRoundedIcon /> },
-    { text: 'SP☆12難易度表', path: '/sp12', mode: 'SP', icon: <GridViewRoundedIcon /> },
-    { text: 'SP☆11難易度表', path: '/sp11', mode: 'SP', icon: <GridViewRoundedIcon /> },
-    { text: 'DP非公式難易度表', path: '/dp', mode: 'DP', icon: <GridViewRoundedIcon /> },
-    { text: 'CPI', path: '/cpi', mode: 'SP', icon: <GridViewRoundedIcon /> },
-    { text: 'BPIM', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon /> },
-    { text: 'BPIM2', path: '/bpim2', mode: 'SP', icon: <GridViewRoundedIcon /> },
-    { text: 'ereter.net', path: '/ereter', mode: 'DP', icon: <GridViewRoundedIcon /> },
-    { text: 'ノーツレーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon /> },
-    { text: '楽曲一覧', path: '/songtable', mode: 'both', icon: <TableRowsIcon /> },
-    { text: '設定', path: '/settings', mode: 'both', icon: <SettingsRoundedIcon /> },
+  const menuItems: Array<NavItem & { mode: VisibleMode }> = [
+    { text: 'Top', path: '/', mode: 'both', icon: <HomeRoundedIcon />, group: 'top' },
+    { text: 'スコアCSV/TSV読み込み', path: '/register', mode: 'both', icon: <UploadRoundedIcon />, group: 'register' },
+    { text: 'スコア手動登録', path: '/edit', mode: 'both', icon: <EditNoteRoundedIcon />, group: 'register' },
+    { text: '更新差分', path: '/diff', mode: 'both', icon: <DifferenceRoundedIcon />, group: 'view' },
+    { text: 'SP☆12難易度表', path: '/sp12', mode: 'SP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'SP☆11難易度表', path: '/sp11', mode: 'SP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'DP非公式難易度表', path: '/dp', mode: 'DP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'CPI', path: '/cpi', mode: 'SP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'BPIM', path: '/bpi', mode: 'both', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'BPIM2', path: '/bpim2', mode: 'SP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'ereter.net', path: '/ereter', mode: 'DP', icon: <GridViewRoundedIcon />, group: 'view' },
+    { text: 'ノーツレーダー', path: '/radar', mode: 'both', icon: <RadarRoundedIcon />, group: 'view' },
+    { text: '楽曲一覧', path: '/songtable', mode: 'both', icon: <TableRowsIcon />, group: 'view' },
+    { text: '設定', path: '/settings', mode: 'both', icon: <SettingsRoundedIcon />, group: 'settings' },
   ];
 
   const visibleMenu = menuItems.filter(item => item.mode === 'both' || item.mode === mode);
@@ -166,7 +171,16 @@ const AppShell: React.FC = () => {
         </Box>
       </Drawer>
 
-      <Container maxWidth={false} sx={{ maxWidth: theme => theme.layout.pageMaxWidth, mb: 6, px: { xs: 2, sm: 3 } }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          maxWidth: theme => theme.layout.pageMaxWidth,
+          px: { xs: 2, sm: 3 },
+          // 下部ナビを出すときはその分だけ下に余白を足す
+          pb: 6,
+          [bottomNavMedia]: { pb: `calc(${bottomNavHeight}px + env(safe-area-inset-bottom) + 32px)` },
+        }}
+      >
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<CsvLoaderPage />} />
@@ -227,6 +241,8 @@ const AppShell: React.FC = () => {
           <Route path="/edit/:songIdRaw/:difficultyRaw" element={<EditDataPage />} />
         </Routes>
       </Container>
+
+      {showBottomNav && <BottomNav items={visibleMenu} />}
     </>
   );
 };

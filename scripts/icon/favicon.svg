@@ -1,0 +1,10 @@
+<!-- ブラウザのタブ用（32px）。小さいと文字が潰れるため棒グラフのみ -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1C1B19"/>
+  <g fill="#F4F1E9">
+    <rect x="128" y="520" width="150" height="330"/>
+    <rect x="318" y="340" width="150" height="510"/>
+    <rect x="508" y="430" width="150" height="420"/>
+  </g>
+  <rect x="698" y="170" width="150" height="680" fill="#E2825F"/>
+</svg>

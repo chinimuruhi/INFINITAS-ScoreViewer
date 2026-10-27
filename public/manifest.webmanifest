@@ -1,0 +1,16 @@
+{
+  "name": "INFINITAS Score Viewer",
+  "short_name": "INF SV",
+  "description": "beatmania IIDXのスコア・ランプを可視化",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F1E9",
+  "theme_color": "#F4F1E9",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

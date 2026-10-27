@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { CssBaseline, PaletteMode } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import { createAppTheme } from '../theme';
+import { createAppTheme, tokens } from '../theme';
 import { colorModeKey } from '../constants/localStrageConstrains';
 
 export type ColorModePreference = PaletteMode | 'system';
@@ -42,6 +42,11 @@ export const ColorModeProvider: React.FC<{ children: ReactNode }> = ({ children 
   // index.html の初期描画（プリレンダー部分）と同じ属性で揃える
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedMode;
+    // ステータスバー・ホーム画面アプリの上端の色もサイト内のテーマ選択に合わせる
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
+      m.setAttribute('content', tokens[resolvedMode].base);
+      m.removeAttribute('media');
+    });
   }, [resolvedMode]);
 
   const setPreference = (p: ColorModePreference) => {

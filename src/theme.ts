@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 import type { PaletteMode } from '@mui/material';
+import { bottomNavHeight, bottomNavMedia } from './constants/layoutConstrains';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -173,6 +174,14 @@ export const createAppTheme = (mode: PaletteMode) => {
         styleOverrides: {
           tooltip: { backgroundColor: t.ink, color: t.base, fontSize: 12 },
           arrow: { color: t.ink },
+        },
+      },
+      // 下部ナビを出すときは、ナビと重ならないように通知を上にずらす
+      MuiSnackbar: {
+        styleOverrides: {
+          anchorOriginBottomCenter: {
+            [bottomNavMedia]: { bottom: `calc(${bottomNavHeight}px + env(safe-area-inset-bottom) + 12px)` },
+          },
         },
       },
       MuiBackdrop: {
