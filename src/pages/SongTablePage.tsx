@@ -47,7 +47,7 @@ type SortDir = 'asc' | 'desc';
 const SongTablePage: React.FC = () => {
   const { mode } = useMode();
   const { filters, setFilters } = useFilters();
-  const { chartInfo, songInfo, konamiInfInfo, commonLoading } = useDataContext();
+  const { chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
   const navigate = useNavigate();
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down('sm'));
@@ -164,9 +164,10 @@ const SongTablePage: React.FC = () => {
       const unlocked = unlockedData[key] ?? false;
       const version = songInfo[s.id]?.version;
       const label = konamiInfInfo[s.id]?.label;
-      return isMatchSong(filters, lamp, s.difficulty, konami, chart, unlocked, version, label);
+      const category = (mode === 'DP' ? dpCategory : spCategory)[s.id]?.[s.difficulty];
+      return isMatchSong(filters, lamp, s.difficulty, konami, chart, unlocked, version, label, category);
     });
-  }, [songs, songSearch, selectedLevel, filters, clearData, chartInfo, konamiInfInfo, unlockedData, songInfo]);
+  }, [songs, songSearch, selectedLevel, filters, clearData, chartInfo, konamiInfInfo, unlockedData, songInfo, mode, spCategory, dpCategory]);
 
   const handleSelectSong = (songId: string, difficultyIndex: string) => {
     navigate(`/edit/${songId}/${difficultyIndex}`);

@@ -10,6 +10,9 @@ interface DataContextType {
   konamiInfInfo: Record<string, any>;
   versionLabels: Record<number, string>;
   labelMap: Record<number, string>;
+  categoryLabels: string[];
+  spCategory: Record<string, Record<string, number>>;
+  dpCategory: Record<string, Record<string, number>>;
   commonLoading: boolean;
 }
 
@@ -28,18 +31,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [konamiInfInfo, setKonamiInfInfo] = useState<Record<string, any>>({});
   const [versionLabels, setVersionLabels] = useState<Record<number, string>>({});
   const [labelMap, setLabelMap] = useState<Record<number, string>>({});
+  const [categoryLabels, setCategoryLabels] = useState<string[]>([]);
+  const [spCategory, setSpCategory] = useState<Record<string, Record<string, number>>>({});
+  const [dpCategory, setDpCategory] = useState<Record<string, Record<string, number>>>({});
   const [commonLoading, setCommonLoading] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [titleRes, chartGz, songInfoGz, konamiRes, versionRes, labelRes] = await Promise.all([
+        const [titleRes, chartGz, songInfoGz, konamiRes, versionRes, labelRes, categoryRes, spCategoryRes, dpCategoryRes] = await Promise.all([
           fetch(`${BASE}/textage/title.json`).then(r => r.json()),
           fetch(`${BASE}/textage/chart-info.json.gz`).then(r => r.arrayBuffer()),
           fetch(`${BASE}/textage/song-info.json.gz`).then(r => r.arrayBuffer()),
           fetch(`${BASE}/konami/song_to_label.json`).then(r => r.json()),
           fetch(`${BASE}/textage/version.json`).then(r => r.json()),
           fetch(`${BASE}/konami/label.json`).then(r => r.json()),
+          fetch(`${BASE}/notes_radar/category/category.json`).then(r => r.json()),
+          fetch(`${BASE}/notes_radar/category/sp_dict.json`).then(r => r.json()),
+          fetch(`${BASE}/notes_radar/category/dp_dict.json`).then(r => r.json()),
         ]);
 
         setTitleMap(titleRes);
@@ -48,6 +57,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setKonamiInfInfo(konamiRes);
         setVersionLabels(toNumMap(versionRes));
         setLabelMap(toNumMap(labelRes));
+        setCategoryLabels(categoryRes);
+        setSpCategory(spCategoryRes);
+        setDpCategory(dpCategoryRes);
       } catch (e) {
         console.error('DataContext fetch failed:', e);
       } finally {
@@ -59,7 +71,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <DataContext.Provider value={{ titleMap, chartInfo, songInfo, konamiInfInfo, versionLabels, labelMap, commonLoading }}>
+    <DataContext.Provider value={{ titleMap, chartInfo, songInfo, konamiInfInfo, versionLabels, labelMap, categoryLabels, spCategory, dpCategory, commonLoading }}>
       {children}
     </DataContext.Provider>
   );

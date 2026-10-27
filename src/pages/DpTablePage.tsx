@@ -21,7 +21,7 @@ import SectionCard from '../components/SectionCard';
 const DpTablePage = () => {
   const { mode } = useMode();
   const { filters, setFilters } = useFilters();
-  const { titleMap, chartInfo, songInfo, konamiInfInfo, commonLoading } = useDataContext();
+  const { titleMap, chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
 
   const [songList, setSongList] = useState<any[]>([]);
   const [clearData, setClearData] = useState<Record<string, number>>({});
@@ -71,8 +71,9 @@ const DpTablePage = () => {
     const unlocked = unlockedData[key] ?? false;
     const version = songInfo[song.id]?.version;
     const label = konamiInfInfo[song.id]?.label;
-    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
-  }), [songList, filters, activeRange, clearData, chartInfo, songInfo, konamiInfInfo]);
+    const category = (mode === 'DP' ? dpCategory : spCategory)[song.id]?.[song.difficulty];
+    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label, category);
+  }), [songList, filters, activeRange, clearData, chartInfo, songInfo, konamiInfInfo, mode, spCategory, dpCategory]);
 
   const groupedByDecimal = useMemo(() => {
     const group: Record<string, any[]> = {};

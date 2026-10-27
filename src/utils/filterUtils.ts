@@ -1,7 +1,7 @@
 import { difficultyKey } from "../constants/difficultyConstrains";
 import { FilterState } from "../types/Types";
 
-export const isMatchSong = (filters: FilterState, lamp: number, difficulty: string, konamiInfInfo: any, chartInfo: any, unlocked: boolean, version: number, label: number) =>{
+export const isMatchSong = (filters: FilterState, lamp: number, difficulty: string, konamiInfInfo: any, chartInfo: any, unlocked: boolean, version: number, label: number, category?: number) =>{
 
     if (filters?.cleartype && filters?.cleartype.length > 0 && !filters?.cleartype.includes(lamp)) return false;
     if (filters?.difficultyPattern && !filters.difficultyPattern.includes(difficultyKey.indexOf(difficulty))) return false;
@@ -15,6 +15,7 @@ export const isMatchSong = (filters: FilterState, lamp: number, difficulty: stri
     }
     if (filters?.version?.length && !filters?.version?.includes(version)) return false;
     if (filters?.label?.length && !filters?.label?.includes(label)) return false;
+    if (filters?.category?.length && (category === undefined || !filters.category.includes(category))) return false;
 
     return true;
 }

@@ -5,4 +5,5 @@ export type FilterState = {
   version?: number[];
   difficultyPattern?: number[];
   label?: number[];
+  category?: number[];
 };

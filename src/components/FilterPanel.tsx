@@ -19,7 +19,7 @@ type Props = {
 const FilterPanel = ({ filters, onChange }: Props) => {
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down('sm'));
-  const { versionLabels, labelMap } = useDataContext();
+  const { versionLabels, labelMap, categoryLabels } = useDataContext();
 
   const [open, setOpen] = useState(false);
   const [pendingFilters, setPendingFilters] = useState<FilterState>(filters);
@@ -187,6 +187,27 @@ const FilterPanel = ({ filters, onChange }: Props) => {
               <MenuItem key={key} value={parseInt(key, 10)}>
                 <Checkbox checked={pendingFilters?.label?.includes(parseInt(key, 10)) || false} />
                 <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={labelMap[parseInt(key, 10)]} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* 譜面カテゴリー */}
+        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+          <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>譜面カテゴリー</InputLabel>
+          <Select
+            multiple
+            value={pendingFilters?.category || []}
+            onChange={(e) => setPendingFilters({ ...pendingFilters, category: e.target.value as number[] })}
+            renderValue={(selected) => (selected as number[]).map((v) => categoryLabels[v] ?? v).join(', ')}
+            size={isXs ? 'small' : 'medium'}
+            MenuProps={menuProps}
+            sx={selectBaseSx}
+          >
+            {categoryLabels.map((label, index) => (
+              <MenuItem key={index} value={index}>
+                <Checkbox checked={pendingFilters?.category?.includes(index) || false} />
+                <ListItemText primaryTypographyProps={{ fontSize: isXs ? 13 : 14 }} primary={label} />
               </MenuItem>
             ))}
           </Select>

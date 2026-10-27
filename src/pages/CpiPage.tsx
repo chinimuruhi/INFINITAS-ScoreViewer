@@ -22,7 +22,7 @@ import { difficultyKey } from '../constants/difficultyConstrains';
 const CpiPage = () => {
   const { mode } = useMode();
   const { filters, setFilters } = useFilters();
-  const { titleMap, chartInfo, songInfo, konamiInfInfo, commonLoading } = useDataContext();
+  const { titleMap, chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
 
   const [songs, setSongs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<(keyof typeof cpiClearMap)[number]>('easy');
@@ -62,8 +62,9 @@ const CpiPage = () => {
     const unlocked = unlockedData[key] ?? false;
     const version = songInfo[song.id]?.version;
     const label = konamiInfInfo[song.id]?.label;
-    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
-  }), [songs, clearData, unlockedData, chartInfo, konamiInfInfo, filters, songInfo, activeTab]);
+    const category = (mode === 'DP' ? dpCategory : spCategory)[song.id]?.[song.difficulty];
+    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label, category);
+  }), [songs, clearData, unlockedData, chartInfo, konamiInfInfo, filters, songInfo, activeTab, mode, spCategory, dpCategory]);
 
   const groupedSongs = useMemo(() => {
     const result: { [label: string]: { label: string; value: number; songs: any[] } } = {};

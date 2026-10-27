@@ -28,7 +28,7 @@ import { difficultyKey } from '../constants/difficultyConstrains';
 const BpiPage = () => {
   const { mode } = useMode();
   const { filters, setFilters } = useFilters();
-  const { titleMap, chartInfo, songInfo, konamiInfInfo, commonLoading } = useDataContext();
+  const { titleMap, chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
 
   const [gradeType, setGradeType] = useState<'aaa_bpi' | 'max_minus_bpi'>('aaa_bpi');
   const [level, setLevel] = useState<11 | 12>(12);
@@ -95,7 +95,8 @@ const BpiPage = () => {
         const unlocked = unlockedData[key] ?? false;
         const version = songInfo[song.id]?.version;
         const label = konamiInfInfo[song.id]?.label;
-        return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
+        const category = (mode === 'DP' ? dpCategory : spCategory)[song.id]?.[song.difficulty];
+        return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label, category);
       })
       .map((song) => {
         const key = songKey(song.id, song.difficulty);
@@ -119,7 +120,7 @@ const BpiPage = () => {
         };
       })
       .sort((a, b) => b[gradeType] - a[gradeType]);
-  }, [songs, scoreData, level, gradeType, filters, konamiInfInfo, chartInfo]);
+  }, [songs, scoreData, level, gradeType, filters, konamiInfInfo, chartInfo, mode, spCategory, dpCategory]);
 
   const { sortedRanges, sections } = useMemo(() => groupByBpiRange(filteredSongs), [filteredSongs]);
 

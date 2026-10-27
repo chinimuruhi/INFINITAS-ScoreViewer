@@ -21,7 +21,7 @@ import { difficultyKey } from '../constants/difficultyConstrains';
 const Sp11TablePage = () => {
   const { mode } = useMode();
   const { filters, setFilters } = useFilters();
-  const { titleMap, chartInfo, songInfo, konamiInfInfo, commonLoading } = useDataContext();
+  const { titleMap, chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
 
   const [songs, setSongs] = useState<any[]>([]);
   const [difficultyLabels, setDifficultyLabels] = useState<{ [key: string]: { [key: string]: string } }>({});
@@ -62,8 +62,9 @@ const Sp11TablePage = () => {
     const unlocked = unlockedData[key] ?? false;
     const version = songInfo[song.id]?.version;
     const label = konamiInfInfo[song.id]?.label;
-    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label);
-  }), [songs, clearData, chartInfo, filters, konamiInfInfo, songInfo]);
+    const category = (mode === 'DP' ? dpCategory : spCategory)[song.id]?.[song.difficulty];
+    return isMatchSong(filters, lamp, song.difficulty, konami, chart, unlocked, version, label, category);
+  }), [songs, clearData, chartInfo, filters, konamiInfInfo, songInfo, mode, spCategory, dpCategory]);
 
   const totalCount = filteredSongs.length;
   const stats = useMemo(() => getLampAchiveCount(filteredSongs, clearData), [filteredSongs, clearData]);
