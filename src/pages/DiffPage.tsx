@@ -337,18 +337,12 @@ const DiffPage = () => {
   if (loading) return <CircularProgress />;
 
   // PageHeader のタイトル（スマホで日付を改行）
-  const headerTitle = isUrldataValid ? (
-    <>
-      {user.djname ? `${user.djname}さんの` : ''}更新差分
-      {user.lastupdated && (
-        <Box component="span" sx={{ display: { xs: 'block', sm: 'inline' } }}>
-          {' '}({user.lastupdated})
-        </Box>
-      )}
-    </>
-  ) : '更新差分';
+  // PageHeader：タイトルは「更新差分」に固定し、DJ名と更新日時は下の補足行に出す
+  const headerSubtitle = isUrldataValid && (user.djname || user.lastupdated)
+    ? [user.djname && `${user.djname}さん`, user.lastupdated].filter(Boolean).join(' · ')
+    : undefined;
 
-  // 𝕏でポスト（ヘッダー actions に設置：スマホはタイトルの下に表示）
+  // 𝕏でポスト（ヘッダー右端に設置）
   const headerActions = (!isShared && hasUpdates && isUrldataValid) ? (
     <Button
       variant="contained"
@@ -373,14 +367,14 @@ const DiffPage = () => {
 
   return (
     <Page>
-      <PageHeader compact title={headerTitle} actions={headerActions} />
+      <PageHeader compact title="更新差分" subtitle={headerSubtitle} actions={headerActions} />
       <SectionCard dense>
-        <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+        <Box>
           {isUrldataValid && (
             <FormControlLabel
               control={<Checkbox checked={excludeNewSongs} onChange={(e) => setExcludeNewSongs(e.target.checked)} />}
               label="初プレー楽曲を除外する"
-              sx={{ my: 1.5, '& .MuiFormControlLabel-label': { fontSize: { xs: 13, sm: 14 } } }}
+              sx={{ mb: 1.5, '& .MuiFormControlLabel-label': { fontSize: { xs: 13, sm: 14 } } }}
             />
           )}
 

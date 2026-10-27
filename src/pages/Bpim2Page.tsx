@@ -156,11 +156,10 @@ const Bpim2Page = () => {
             <CircularProgress color="inherit" />
           </Backdrop>
 
-          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mb: 0.5 }}>
-            <Typography variant="body2" color="text.secondary">総合BPI（☆{level}）</Typography>
-            <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 700, lineHeight: 1.2 }}>{totalBpi.toFixed(2)}</Typography>
-          </Box>
-          <Note>BPIM2の定義データ・算出式（BPI V2）を使用しています。未プレイ譜面は推定値として総合BPIに反映されます。</Note>
+          <Typography component="p" sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 700, lineHeight: 1.3, mb: 0.5 }}>
+            総合BPI（☆{level}）
+            <Box component="span" sx={{ ml: 1 }}>{totalBpi.toFixed(2)}</Box>
+          </Typography>
 
           <AchieveBars
             totalCount={totalCount}

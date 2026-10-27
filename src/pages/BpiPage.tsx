@@ -181,10 +181,10 @@ const BpiPage = () => {
             <CircularProgress color="inherit" />
           </Backdrop>
 
-          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mb: 0.5 }}>
-            <Typography variant="body2" color="text.secondary">総合BPI（☆{level}）</Typography>
-            <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 700, lineHeight: 1.2 }}>{totalBpi.toFixed(2)}</Typography>
-          </Box>
+          <Typography component="p" sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 700, lineHeight: 1.3, mb: 0.5 }}>
+            総合BPI（☆{level}）
+            <Box component="span" sx={{ ml: 1 }}>{totalBpi.toFixed(2)}</Box>
+          </Typography>
           <Note>
             定義データ Ver.{bpiVersion}（<MuiLink component={RouterLink} to="/settings" color="inherit">設定</MuiLink>で変更できます）
           </Note>
