@@ -49,8 +49,8 @@ const FilterPanel = ({ filters, onChange }: Props) => {
   };
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ mb: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
         <IconButton onClick={() => setOpen(!open)} size={isXs ? 'small' : 'medium'}>
           {open ? <FilterListOff fontSize={isXs ? 'small' : 'medium'} /> : <FilterList fontSize={isXs ? 'small' : 'medium'} />}
         </IconButton>
@@ -64,8 +64,9 @@ const FilterPanel = ({ filters, onChange }: Props) => {
       </Box>
 
       <Collapse in={open}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2, pt: 1, mb: 2 }}>
         {/* クリアランプ */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>クリアランプ</InputLabel>
           <Select
             multiple
@@ -86,7 +87,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* 譜面難易度  */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>譜面難易度</InputLabel>
           <Select
             multiple
@@ -107,7 +108,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* 解禁状況 */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>INFINITAS解禁状況（Reflux）</InputLabel>
           <Select
             value={pendingFilters?.unlocked ?? ''}
@@ -128,7 +129,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* 収録状況 */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>AC/INFINITAS収録状況</InputLabel>
           <Select
             value={pendingFilters?.releaseType || ''}
@@ -151,7 +152,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* バージョン */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>バージョン</InputLabel>
           <Select
             multiple
@@ -172,7 +173,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* 楽曲パック */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>楽曲パック</InputLabel>
           <Select
             multiple
@@ -193,7 +194,7 @@ const FilterPanel = ({ filters, onChange }: Props) => {
         </FormControl>
 
         {/* 譜面カテゴリー */}
-        <FormControl fullWidth sx={{ mb: 2 }} size={isXs ? 'small' : 'medium'}>
+        <FormControl fullWidth size={isXs ? 'small' : 'medium'}>
           <InputLabel sx={{ fontSize: isXs ? 12 : 14 }}>譜面カテゴリー</InputLabel>
           <Select
             multiple
@@ -212,6 +213,8 @@ const FilterPanel = ({ filters, onChange }: Props) => {
             ))}
           </Select>
         </FormControl>
+
+        </Box>
 
         <Box textAlign="right">
           <Button

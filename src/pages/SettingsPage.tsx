@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Container,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -18,7 +17,10 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
+import { useColorMode, ColorModePreference } from '../context/ColorModeContext';
 import { getCurrentFormattedDate, getCurrentFormattedTime } from '../utils/dateUtils';
 import { appKeys } from '../constants/localStrageConstrains';
 import SectionCard from '../components/SectionCard';
@@ -30,7 +32,16 @@ declare global {
   interface Window { google?: any; }
 }
 
+const sectionSx = {
+  py: 3,
+  borderBottom: 1,
+  borderColor: 'divider',
+  '&:first-of-type': { pt: 1 },
+  '&:last-of-type': { borderBottom: 0 },
+} as const;
+
 const SettingsPage: React.FC = () => {
+  const { preference: colorPreference, setPreference: setColorPreference } = useColorMode();
   const [djName, setDjName] = useState<string>('');
   const [loadedUser, setLoadedUser] = useState<any>({});
 
@@ -511,26 +522,40 @@ const SettingsPage: React.FC = () => {
     <Page>
       <PageHeader compact title="設定" />
       <SectionCard>
-        <Container maxWidth="md" sx={{ my: 4 }}>
+        <Container maxWidth="md" disableGutters sx={{ mx: 0 }}>
 
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Box component="section" sx={sectionSx}>
+            <Typography variant="h6" gutterBottom>表示テーマ</Typography>
+            <ToggleButtonGroup
+              value={colorPreference}
+              exclusive
+              size="small"
+              onChange={(_, v: ColorModePreference | null) => v && setColorPreference(v)}
+            >
+              <ToggleButton value="light">ライト</ToggleButton>
+              <ToggleButton value="dark">ダーク</ToggleButton>
+              <ToggleButton value="system">端末の設定に合わせる</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          <Box component="section" sx={sectionSx}>
             <Typography variant="h6" gutterBottom>DJ Name</Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
               <TextField
                 label="DJ Name"
                 value={djName}
                 onChange={(e) => setDjName(e.target.value)}
                 inputProps={{ maxLength: 20 }}
-                sx={{ flex: 1, minWidth: 240 }}
+                sx={{ flex: 1 }}
               />
               <Button variant="contained" onClick={handleSaveDjName}>保存</Button>
             </Stack>
-          </Paper>
+          </Box>
 
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Box component="section" sx={sectionSx}>
             <Typography variant="h6" gutterBottom>BPI定義ファイル</Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-              <FormControl sx={{ flex: 1, minWidth: 240 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <FormControl sx={{ flex: 1 }}>
                 <InputLabel id="bpi-version-select-label">バージョン</InputLabel>
                 <Select
                   labelId="bpi-version-select-label"
@@ -548,9 +573,9 @@ const SettingsPage: React.FC = () => {
               </FormControl>
               <Button variant="contained" onClick={handleSaveVersion}>保存</Button>
             </Stack>
-          </Paper>
+          </Box>
 
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Box component="section" sx={sectionSx}>
             <Typography variant="h6" gutterBottom>エクスポート / インポート</Typography>
             <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
               定期的なバックアップを推奨します。スコアデータはお使いの端末のブラウザ(LocalStorage)に保存される形式となっており、キャッシュの削除等で消えてしまう可能性がございます。
@@ -581,17 +606,17 @@ const SettingsPage: React.FC = () => {
             <Typography variant="caption" sx={{ mt: 1.5, display: 'block', color: 'text.secondary' }}>
               ※ 誤って更新した場合にも、Google Driveであればバージョン管理機能から過去の状態に戻すことが可能です。
             </Typography>
-          </Paper>
+          </Box>
 
-          <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'error.light' }}>
+          <Box component="section" sx={sectionSx}>
             <Typography variant="h6" gutterBottom color="error">データの削除</Typography>
             <Typography variant="body2" sx={{ mb: 2 }}>
               登録したスコアデータを削除します。
             </Typography>
-            <Button color="error" variant="contained" onClick={handleDelete}>
+            <Button color="error" variant="outlined" onClick={handleDelete}>
               スコアデータを削除
             </Button>
-          </Paper>
+          </Box>
 
           <Snackbar
             open={snack.open}

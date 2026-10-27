@@ -7,9 +7,9 @@ import {
   ToggleButton,
   CircularProgress,
   Backdrop,
-  LinearProgress,
   Container
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useMode } from '../context/ModeContext';
 import { useFilters } from '../context/FilterContext';
 import { useDataContext } from '../context/DataContext';
@@ -23,10 +23,13 @@ import { bpiGapColor, scoreColorMap } from '../constants/colorConstrains';
 import { Page, PageHeader } from '../components/Page';
 import { useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
+import AchieveBars from '../components/AchieveBars';
+import { tileTone } from '../utils/colorUtils';
 import { difficultyKey } from '../constants/difficultyConstrains';
 
 const BpiPage = () => {
   const { mode } = useMode();
+  const theme = useTheme();
   const { filters, setFilters } = useFilters();
   const { titleMap, chartInfo, songInfo, konamiInfInfo, spCategory, dpCategory, commonLoading } = useDataContext();
 
@@ -170,7 +173,7 @@ const BpiPage = () => {
     <Page>
       <PageHeader compact title="Beat Power Indicator(BPI)" />
       <SectionCard>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -182,44 +185,14 @@ const BpiPage = () => {
             現在の定義データは Ver.{bpiVersion} です。設定より定義データを選択できます。
           </Typography>
 
-          <Box sx={{ my: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {Object.keys(achievementRates).map((grade) => {
-              const count = achievementRates[grade];
-              const pct = totalCount > 0 ? (count / totalCount) * 100 : 0;
-              const color = scoreColorMap[grade];
-              return (
-                <Box key={grade} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 } }}>
-                  <Box sx={{ width: { xs: 10, sm: 12 }, height: { xs: 10, sm: 12 }, borderRadius: '50%', backgroundColor: color, flexShrink: 0, border: '1px solid rgba(0,0,0,.15)' }} />
-                  <Typography
-                    variant="caption"
-                    sx={{ width: { xs: 50, sm: 56 }, flexShrink: 0, fontWeight: 700, color: 'text.secondary', fontSize: { xs: '0.60rem', sm: undefined } }}
-                  >
-                    {grade}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={pct}
-                    sx={{ flex: 1, '& .MuiLinearProgress-bar': { backgroundColor: color } }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ width: { xs: 50, sm: 100 }, flexShrink: 0, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'text.secondary', fontSize: { xs: '0.68rem', sm: undefined } }}
-                  >
-                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'inline' } }}>
-                      {count}/{totalCount}{' '}
-                    </Box>
-                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                      ({pct.toFixed(1)}%)
-                    </Box>
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
+          <AchieveBars
+            totalCount={totalCount}
+            items={Object.keys(achievementRates).map((grade) => ({ key: grade, label: grade, count: achievementRates[grade], color: scoreColorMap[grade] }))}
+          />
 
           <FilterPanel filters={filters} onChange={setFilters} />
 
-          <Box sx={{ my: 2, display: 'flex', gap: 1, overflowX: 'auto', px: 1, pb: 0.5, WebkitOverflowScrolling: 'touch', '&::-webkit-scrollbar': { display: 'none' } }}>
+          <Box sx={{ my: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 0.5, WebkitOverflowScrolling: 'touch', '&::-webkit-scrollbar': { display: 'none' } }}>
             <ToggleButtonGroup value={gradeType} exclusive onChange={(e, v) => v && setGradeType(v)} size="small" sx={{ flexWrap: 'nowrap', '& .MuiToggleButton-root': { px: { xs: 1.25, sm: 1.5 }, py: { xs: 0.5, sm: 0.75 }, fontSize: { xs: 12, sm: 13 }, whiteSpace: 'nowrap' } }}>
               <ToggleButton value="aaa_bpi">
                 <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>AAA</Box>
@@ -239,25 +212,31 @@ const BpiPage = () => {
 
           {sortedRanges.map((range) => (
             <Box key={range} sx={{ my: 2 }}>
-              <Typography variant="h6" sx={{ fontSize: { xs: 15, sm: 18, md: 20 }, lineHeight: 1.25, fontWeight: 800, letterSpacing: .2, mb: 1 }}>
+              <Typography variant="h6" sx={{ fontSize: { xs: 15, sm: 18, md: 20 }, lineHeight: 1.25, mb: 1 }}>
                 {gradeType === 'aaa_bpi' ? 'AAA難易度' : 'MAX-難易度'}{' '}
                 <Box component="span" sx={{ display: 'inline' }}>
                   BPI{range}〜{parseInt(range, 10) + 10}
                 </Box>
               </Typography>
-              <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
+              <Grid container spacing={{ xs: 0.75, sm: 1 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {sections[range].map((song) => {
                   const key = songKey(song.id, song.difficulty);
                   const title = titleMap[song.id];
                   const displayTitle = `${title}[${song.difficulty}]`;
                   const colorGrade = song.percentage >= 17 / 18 ? 'MAX-' : song.grade;
-                  const boxSx =
-                    song.score === 0
-                      ? { p: { xs: 1, sm: 1 }, border: '1px solid #ccc', borderRadius: 2, backgroundColor: 'white' }
-                      : { p: { xs: 1, sm: 1 }, border: `3px solid ${bpiGapColor(song.gap, false)}`, borderRadius: 2, backgroundColor: scoreColorMap[colorGrade] };
+                  const tone = tileTone(song.score === 0 ? undefined : scoreColorMap[colorGrade], theme);
+                  const boxSx = {
+                    p: { xs: 0.75, sm: 1 },
+                    height: '100%',
+                    cursor: 'pointer',
+                    borderRadius: 0.5,
+                    bgcolor: tone.bg,
+                    color: tone.fg,
+                    border: song.score === 0 ? `1px solid ${theme.palette.divider}` : `3px solid ${bpiGapColor(song.gap, false)}`,
+                  };
                   return (
                     <Grid item xs={1} sm={6} md={4} key={key} sx={{ minWidth: 0 }}>
-                      <Box sx={boxSx}>
+                      <Box sx={boxSx} onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}>
                         <Typography
                           variant="body2"
                           fontWeight="bold"
@@ -268,7 +247,6 @@ const BpiPage = () => {
                             wordBreak: 'break-word',
                             lineHeight: 1.35,
                           }}
-                          onClick={() => navigate(`/edit/${song.id}/${difficultyKey.indexOf(song.difficulty)}`)}
                         >
                           {displayTitle}
                         </Typography>

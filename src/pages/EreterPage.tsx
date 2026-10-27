@@ -81,7 +81,7 @@ const EreterPage = () => {
     <Page>
       <PageHeader compact title="ereter's dp laboratory" />
       <SectionCard dense>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -98,7 +98,7 @@ const EreterPage = () => {
           {sortedSections.map(section => (
             <Box key={section} sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>{section}</Typography>
-              <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
+              <Grid container spacing={{ xs: 0.75, sm: 1 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {groupedSongs[section]
                   .slice()
                   .sort((a, b) => b[diffValueKey[activeTab]] - a[diffValueKey[activeTab]])

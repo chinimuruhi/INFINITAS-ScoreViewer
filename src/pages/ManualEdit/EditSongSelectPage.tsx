@@ -85,7 +85,7 @@ const EditSongSelectPage = () => {
     <Page>
       <PageHeader compact title="スコア手動登録" />
       <SectionCard>
-        <Container sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
 
           <Box sx={{ mb: 2 }}>
             <Button variant="contained" onClick={handleResetClick} sx={{ mb: 2 }}>
@@ -143,15 +143,8 @@ const EditSongSelectPage = () => {
                   <TableRow
                     key={`${song.key}`}
                     onClick={() => handleSelectSong(song.id, song.diffNumber)}
-                    style={{
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s',
-                    }}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: '#f0f0f0',
-                      },
-                    }}
+                    hover
+                    sx={{ cursor: 'pointer' }}
                   >
                     <TableCell>{song.title} [{song.difficulty}]{acInfDiffMap[song.id] ? ' (INFINITAS)' : ''}</TableCell>
                   </TableRow>

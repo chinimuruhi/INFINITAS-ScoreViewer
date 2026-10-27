@@ -8,7 +8,7 @@ const FiltersBar: React.FC<{
   <Box
     sx={{
       p: 1.25,
-      borderRadius: 2,
+      borderRadius: 0.5,
       border: (theme) => `1px solid ${theme.palette.divider}`,
       backgroundColor: 'background.paper',
       mb: 1.5,

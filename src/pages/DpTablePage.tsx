@@ -93,7 +93,7 @@ const DpTablePage = () => {
     <Page>
       <PageHeader compact title="DP非公式難易度表" />
       <SectionCard dense>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -110,7 +110,7 @@ const DpTablePage = () => {
           {sortedDecimals.map(dec => (
             <Box key={dec} sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>{dec}</Typography>
-              <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
+              <Grid container spacing={{ xs: 0.75, sm: 1 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {groupedByDecimal[dec].map(song => {
                   const key = songKey(song.id, song.difficulty);
                   const lamp = clearData[key] ?? 0;

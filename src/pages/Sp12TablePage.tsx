@@ -88,7 +88,7 @@ const Sp12TablePage = () => {
     <Page>
       <PageHeader compact title="SP☆12 難易度表" />
       <SectionCard>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -104,7 +104,7 @@ const Sp12TablePage = () => {
           {sortedLabels.map(group => (
             <Box key={group.label} sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>{group.label}</Typography>
-              <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
+              <Grid container spacing={{ xs: 0.75, sm: 1 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {group.songs.map((song) => {
                   const key = songKey(song.id, song.difficulty);
                   const lamp = clearData[key] ?? 0;

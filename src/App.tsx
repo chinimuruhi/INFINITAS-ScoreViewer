@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Container, CssBaseline, AppBar, Toolbar, Typography, IconButton,
+  Container, AppBar, Toolbar, Typography, IconButton,
   Drawer, List, ListItemButton, ListItemText, ListItemIcon, ToggleButton,
   ToggleButtonGroup, Box, Divider, Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import UploadRoundedIcon from '@mui/icons-material/UploadRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
@@ -16,6 +18,7 @@ import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 
 import { useMode } from './context/ModeContext';
+import { useColorMode } from './context/ColorModeContext';
 
 import CsvLoaderPage from './pages/CsvLoaderPage';
 import DiffPage from './pages/DiffPage';
@@ -37,6 +40,7 @@ type VisibleMode = 'SP' | 'DP' | 'both';
 
 const AppShell: React.FC = () => {
   const { mode, setMode } = useMode();
+  const { resolvedMode, toggle: toggleColorMode } = useColorMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,138 +78,86 @@ const AppShell: React.FC = () => {
     }
   }, [location.search, navigate]);
 
+  const modeToggle = (
+    <ToggleButtonGroup
+      value={mode}
+      exclusive
+      onChange={(_, value) => value && setMode(value)}
+      size="small"
+      aria-label="プレースタイル"
+      sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, lineHeight: 1.6 } }}
+    >
+      <ToggleButton value="SP">SP</ToggleButton>
+      <ToggleButton value="DP">DP</ToggleButton>
+    </ToggleButtonGroup>
+  );
+
   return (
     <>
-      <CssBaseline />
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 50%, #1d4ed8 100%)',
-          borderBottom: '1px solid rgba(255,255,255,.15)',
-          boxShadow: '0 2px 16px rgba(37,99,235,.35)',
-        }}
-      >
-        <Toolbar sx={{ minHeight: 64 }}>
-          <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} sx={{ mr: 1 }}>
+      <AppBar position="sticky">
+        <Toolbar sx={{ minHeight: { xs: 52, sm: 56 }, px: { xs: 1, sm: 2 }, gap: 1 }}>
+          <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} aria-label="メニューを開く">
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 800, letterSpacing: .3 }}>
+          <Typography variant="subtitle1" component="div" sx={{ flexGrow: 1, minWidth: 0 }}>
             <Link
               to="/"
               style={{ textDecoration: 'none', color: 'inherit', whiteSpace: 'nowrap' }}
               title="INFINITAS Score Viewer"
             >
-              {/* xs: INF SV / sm以上: INFINITAS Score Viewer */}
-              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }} aria-label="INFINITAS Score Viewer">
-                INF Score Viewer
-              </Box>
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                INFINITAS Score Viewer
-              </Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>INF Score Viewer</Box>
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>INFINITAS Score Viewer</Box>
             </Link>
           </Typography>
-
-
-          {/* SP / DP Toggle */}
-          <Box
-            sx={{
-              bgcolor: 'rgba(255,255,255,.9)',
-              borderRadius: 999,
-              px: 1,
-              py: 0.5,
-              display: 'flex',
-              alignItems: 'center',
-              border: '1px solid rgba(255,255,255,.3)',
-              boxShadow: '0 2px 10px rgba(0,0,0,.3)',
-            }}
-          >
-            <ToggleButtonGroup
-              value={mode}
-              exclusive
-              onChange={(_, value) => value && setMode(value)}
-              size="small"
-              color="primary"
-            >
-              <ToggleButton value="SP" sx={{ fontWeight: 700, px: 2 }}>SP</ToggleButton>
-              <ToggleButton value="DP" sx={{ fontWeight: 700, px: 2 }}>DP</ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
+          {modeToggle}
+          <Tooltip title={resolvedMode === 'dark' ? 'ライトテーマにする' : 'ダークテーマにする'}>
+            <IconButton color="inherit" onClick={toggleColorMode} aria-label="テーマを切り替える" edge="end">
+              {resolvedMode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
       {/* Drawer */}
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
-        <Box sx={{ width: 280 }}>
-          <Box
-            sx={{
-              px: 2,
-              py: 2,
-              background:
-                'linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.03))',
-              borderBottom: theme => `1px solid ${theme.palette.divider}`,
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ opacity: .8, mb: .5 }}>
-              モード
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: 'background.paper',
-                borderRadius: 999,
-                px: 1,
-                py: 0.5,
-                border: theme => `1px solid ${theme.palette.divider}`,
-                width: 'fit-content',
-              }}
-            >
-              <ToggleButtonGroup
-                value={mode}
-                exclusive
-                onChange={(_, value) => value && setMode(value)}
-                size="small"
-                color="primary"
-              >
-                <ToggleButton value="SP" sx={{ px: 2, fontWeight: 700 }}>SP</ToggleButton>
-                <ToggleButton value="DP" sx={{ px: 2, fontWeight: 700 }}>DP</ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
+        <Box sx={{ width: 264, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: theme => `1px solid ${theme.palette.divider}` }}>
+            <Typography variant="caption" color="text.secondary">プレースタイル</Typography>
+            {modeToggle}
           </Box>
 
-          <List sx={{ py: 1 }}>
+          <List sx={{ py: 1, flexGrow: 1 }} component="nav">
             {visibleMenu.map(item => {
               const selected = location.pathname === item.path;
               return (
-                <Tooltip key={item.path} title={item.text} placement="right" arrow>
-                  <ListItemButton
-                    component={Link}
-                    to={item.path}
-                    selected={selected}
-                    onClick={toggleDrawer(false)}
-                    sx={{
-                      borderRadius: 2,
-                      mx: 1,
-                      mb: .5,
-                      '&.Mui-selected': {
-                        bgcolor: 'action.selected',
-                        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36, color: 'text.secondary' }}>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.text}
-                      primaryTypographyProps={{ fontWeight: selected ? 800 : 600 }}
-                    />
-                  </ListItemButton>
-                </Tooltip>
+                <ListItemButton
+                  key={item.path}
+                  component={Link}
+                  to={item.path}
+                  selected={selected}
+                  onClick={toggleDrawer(false)}
+                  sx={{
+                    py: 0.75,
+                    borderLeft: '3px solid transparent',
+                    '&.Mui-selected, &.Mui-selected:hover': {
+                      bgcolor: 'action.hover',
+                      borderLeftColor: 'secondary.main',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ fontSize: 14, fontWeight: selected ? 700 : 400 }}
+                  />
+                </ListItemButton>
               );
             })}
           </List>
 
-          <Divider sx={{ my: 1 }} />
+          <Divider />
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="caption" color="text.secondary">
               © {new Date().getFullYear()} chinimuruhi
@@ -214,7 +166,7 @@ const AppShell: React.FC = () => {
         </Box>
       </Drawer>
 
-      <Container maxWidth={false} sx={{ mt: 2, mb: 6, px: { xs: 1, sm: 2, md: 3 } }}>
+      <Container maxWidth={false} sx={{ maxWidth: theme => theme.layout.pageMaxWidth, mb: 6, px: { xs: 2, sm: 3 } }}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/register" element={<CsvLoaderPage />} />
@@ -224,7 +176,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'SP'
                 ? <Sp12TablePage />
-                : <Typography>このページはSPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="SP" />
             }
           />
           <Route
@@ -232,7 +184,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'SP'
                 ? <Sp11TablePage />
-                : <Typography>このページはSPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="SP" />
             }
           />
           <Route
@@ -240,7 +192,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'DP'
                 ? <DpTablePage />
-                : <Typography>このページはDPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="DP" />
             }
           />
           <Route
@@ -248,7 +200,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'SP'
                 ? <CpiPage />
-                : <Typography>このページはSPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="SP" />
             }
           />
           <Route path="/bpi" element={<BpiPage />} />
@@ -257,7 +209,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'SP'
                 ? <Bpim2Page />
-                : <Typography>このページはSPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="SP" />
             }
           />
           <Route
@@ -265,7 +217,7 @@ const AppShell: React.FC = () => {
             element={
               mode === 'DP'
                 ? <EreterPage />
-                : <Typography>このページはDPモードでのみ利用可能です。</Typography>
+                : <ModeOnlyNotice mode="DP" />
             }
           />
           <Route path="/radar" element={<RadarPage />} />
@@ -278,6 +230,10 @@ const AppShell: React.FC = () => {
     </>
   );
 };
+
+const ModeOnlyNotice: React.FC<{ mode: 'SP' | 'DP' }> = ({ mode }) => (
+  <Typography color="text.secondary" sx={{ py: 4 }}>このページは{mode}モードでのみ利用可能です。</Typography>
+);
 
 const App: React.FC = () => (
   <Router basename={process.env.BASE_URL || '/'}>

@@ -5,7 +5,6 @@ import {
   Typography,
   Checkbox,
   FormControlLabel,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -21,11 +20,11 @@ import { ungzip } from 'pako';
 import { compressDiffData, decompressDiffData } from '../utils/encodeUtils';
 import { useAppContext } from '../context/AppContext';
 import { clearColorMap } from '../constants/colorConstrains';
-import { simpleClearName } from '../constants/clearConstrains';
 import { defaultMisscount } from '../constants/defaultValues';
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import LampLabel from '../components/LampLabel';
 import { acInfDiffMap } from '../constants/titleConstrains';
 import { useNavigate } from 'react-router-dom';
 import { difficultyKey } from '../constants/difficultyConstrains';
@@ -357,9 +356,9 @@ const DiffPage = () => {
       size={isXs ? 'small' : 'medium'}
       sx={{
         fontWeight: 700,
-        bgcolor: 'common.black',
-        color: 'common.white',
-        '&:hover': { bgcolor: '#333' },
+        bgcolor: 'text.primary',
+        color: 'background.default',
+        '&:hover': { bgcolor: 'text.primary', opacity: 0.85 },
       }}
     >
       𝕏でポスト
@@ -389,7 +388,7 @@ const DiffPage = () => {
           {processed.clearUpdates[mode].length > 0 && (
             <>
               <Typography variant="h6" sx={{ mb: 1 }}>ランプ更新</Typography>
-              <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto' }}>
+              <TableContainer sx={{ mb: 3, overflowX: 'auto' }}>
                 <Table size="small" sx={{ minWidth: 520, '& td, & th': { fontSize: { xs: 12, sm: 14 } } }}>
                   <TableHead>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
@@ -414,9 +413,9 @@ const DiffPage = () => {
                             }
                           </TableCell>
                           <TableCell>{row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''}</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorBefore }}>{simpleClearName[row.before]}</Box></TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}><LampLabel lamp={row.before} /></TableCell>
                           <TableCell sx={{ px: 0, textAlign: 'center' }}>→</TableCell>
-                          <TableCell sx={{ textAlign: 'center' }}><Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: row.colorAfter }}>{simpleClearName[row.after]}</Box></TableCell>
+                          <TableCell sx={{ textAlign: 'center' }}><LampLabel lamp={row.after} /></TableCell>
                         </TableRow>
 
                         {/* Mobile */}
@@ -426,9 +425,9 @@ const DiffPage = () => {
                               {row.title} [{row.difficulty}]{acInfDiffMap[Number(row.id)] ? ' (INFINITAS)' : ''} ☆{row.lv}{row.dpDiffValue > 0 ? ` (${row.dpDiffValue.toFixed(1)})` : (row.clearDiffLabel || row.hardDiffLabel) ? ` (${[row.clearDiffLabel, row.hardDiffLabel].filter(Boolean).join('/')})` : ''}
                             </Typography>
                             <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: 12 }}>
-                              <Box sx={{ px: 1, borderRadius: 1, bgcolor: row.colorBefore }}>{simpleClearName[row.before]}</Box>
+                              <LampLabel lamp={row.before} />
                               <Box sx={{ px: 0.5 }}>→</Box>
-                              <Box sx={{ px: 1, borderRadius: 1, bgcolor: row.colorAfter }}>{simpleClearName[row.after]}</Box>
+                              <LampLabel lamp={row.after} />
                             </Box>
                           </TableCell>
                         </TableRow>
@@ -444,7 +443,7 @@ const DiffPage = () => {
           {processed.scoreUpdates[mode].length > 0 && (
             <>
               <Typography variant="h6" sx={{ mb: 1 }}>スコア更新</Typography>
-              <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto' }}>
+              <TableContainer sx={{ mb: 3, overflowX: 'auto' }}>
                 <Table size="small" sx={{ minWidth: 520, '& td, & th': { fontSize: { xs: 12, sm: 14 } } }}>
                   <TableHead>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
@@ -495,7 +494,7 @@ const DiffPage = () => {
           {processed.missUpdates[mode].length > 0 && (
             <>
               <Typography variant="h6" sx={{ mb: 1 }}>BP更新</Typography>
-              <TableContainer component={Paper} sx={{ mb: 0, overflowX: 'auto' }}>
+              <TableContainer sx={{ mb: 0, overflowX: 'auto' }}>
                 <Table size="small" sx={{ minWidth: 520, '& td, & th': { fontSize: { xs: 12, sm: 14 } } }}>
                   <TableHead>
                     <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }}>
@@ -536,8 +535,8 @@ const DiffPage = () => {
             </>
           )}
 
-          {isShared && !isUrldataValid && <Typography variant="h6">共有データが破損しているため表示できませんでした。</Typography>}
-          {!hasUpdates && isUrldataValid && <Typography variant="h6">更新がありません</Typography>}
+          {isShared && !isUrldataValid && <Typography color="text.secondary" sx={{ py: 3 }}>共有データが破損しているため表示できませんでした。</Typography>}
+          {!hasUpdates && isUrldataValid && <Typography color="text.secondary" sx={{ py: 3 }}>更新がありません</Typography>}
         </Box>
       </SectionCard>
     </Page>

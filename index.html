@@ -3,6 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // 描画前にテーマを決めて、読み込み中に白く光らないようにする（src/context/ColorModeContext.tsx と同じキー）
+      (function () {
+        var pref = 'system';
+        try { pref = localStorage.getItem('colorMode') || 'system'; } catch (e) {}
+        var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+    <style>
+      /* src/theme.ts の tokens と同じ値 */
+      :root {
+        --base: #F4F1E9; --ink: #2B2A27; --ink-sub: #66625A; --line: rgba(43, 42, 39, .14);
+        --main: #2F4E68; --accent: #B44A2C; --accent-text: #F4F1E9;
+        color-scheme: light;
+      }
+      :root[data-theme="dark"] {
+        --base: #1C1B19; --ink: #E8E4DA; --ink-sub: #A7A194; --line: rgba(232, 228, 218, .14);
+        --main: #94B2C9; --accent: #E2825F; --accent-text: #1C1B19;
+        color-scheme: dark;
+      }
+      html, body { margin: 0; background: var(--base); color: var(--ink); }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

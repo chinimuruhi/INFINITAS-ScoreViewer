@@ -3,19 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProvider } from './context/AppContext';
 import { DataProvider } from './context/DataContext';
-import { CssBaseline } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from './theme';
+import { ColorModeProvider } from './context/ColorModeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
     <AppProvider>
       <DataProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
+        <ColorModeProvider>
           <App />
-        </ThemeProvider>
+        </ColorModeProvider>
       </DataProvider>
     </AppProvider>
   </React.StrictMode>

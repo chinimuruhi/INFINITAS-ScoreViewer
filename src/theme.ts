@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import type { PaletteMode } from '@mui/material';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -9,116 +10,177 @@ declare module '@mui/material/styles' {
   }
 }
 
-export const theme = createTheme({
-  shape: { borderRadius: 14 },
-  palette: {
-    mode: 'light',
-    primary: { main: '#2563eb' },
-    secondary: { main: '#64748b' },
-    background: {
-      default: '#f8fafc',
-      paper: '#FFFFFF',
+// 配色は「土台・メイン・差し色」の3つに絞る
+//   土台   : 生成り / 墨（背景・文字）
+//   メイン : 藍（リンク・ボタン・選択状態）
+//   差し色 : 朱（現在地・主要な導線など、目立たせたい場所のみ）
+export const tokens = {
+  light: {
+    base: '#F4F1E9',      // 生成り
+    surface: '#FAF8F3',   // 入力欄・メニューなど一段手前の面
+    ink: '#2B2A27',       // 墨
+    inkSub: '#66625A',
+    line: 'rgba(43, 42, 39, .14)',
+    main: '#2F4E68',      // 藍
+    mainText: '#F4F1E9',
+    accent: '#B44A2C',    // 朱
+    accentText: '#F4F1E9',
+    danger: '#A33A2E',   // 削除など取り消せない操作（朱の系統で暗め）
+  },
+  dark: {
+    base: '#1C1B19',      // 墨
+    surface: '#252421',
+    ink: '#E8E4DA',       // 生成り
+    inkSub: '#A7A194',
+    line: 'rgba(232, 228, 218, .14)',
+    main: '#94B2C9',
+    mainText: '#1C1B19',
+    accent: '#E2825F',
+    accentText: '#1C1B19',
+    danger: '#E58A7A',
+  },
+} as const;
+
+// ランプ色・グレード色の上に載せる文字色（色が明るいため、どちらのテーマでも墨を使う）
+export const inkOnColor = tokens.light.ink;
+
+export const createAppTheme = (mode: PaletteMode) => {
+  const t = tokens[mode];
+
+  return createTheme({
+    shape: { borderRadius: 3 },
+    palette: {
+      mode,
+      primary: { main: t.main, contrastText: t.mainText },
+      secondary: { main: t.accent, contrastText: t.accentText },
+      error: { main: t.danger },
+      background: { default: t.base, paper: t.surface },
+      text: { primary: t.ink, secondary: t.inkSub },
+      divider: t.line,
     },
-  },
-  typography: {
-    fontWeightBold: 800,
-    h5: { fontWeight: 800, letterSpacing: .2 },
-    h6: { fontWeight: 800, letterSpacing: .2 },
-    subtitle1: { fontWeight: 700 },
-    button: { fontWeight: 700, textTransform: 'none' },
-  },
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundImage:
-            'radial-gradient(circle, rgba(37,99,235,.07) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+    typography: {
+      fontFamily: [
+        '-apple-system', 'BlinkMacSystemFont', '"Hiragino Sans"', '"Hiragino Kaku Gothic ProN"',
+        '"Noto Sans JP"', '"Yu Gothic UI"', 'Meiryo', 'sans-serif',
+      ].join(','),
+      fontWeightBold: 700,
+      h5: { fontWeight: 700, fontSize: '1.375rem', lineHeight: 1.4 },
+      h6: { fontWeight: 700, fontSize: '1.0625rem', lineHeight: 1.5 },
+      subtitle1: { fontWeight: 700 },
+      subtitle2: { fontWeight: 700 },
+      button: { fontWeight: 600, textTransform: 'none', letterSpacing: 0 },
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          html: { colorScheme: mode },
+          body: {
+            backgroundColor: t.base,
+            color: t.ink,
+            fontVariantNumeric: 'tabular-nums',
+          },
+          a: { color: t.main },
         },
       },
-    },
-    MuiCard: {
-      defaultProps: { elevation: 0 },
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.07)',
-          border: '1px solid rgba(0,0,0,.1)',
-          backgroundImage: 'none',
+      // ダークモードで MUI が Paper に重ねる白いグラデーションを無効化
+      MuiPaper: {
+        defaultProps: { elevation: 0 },
+        styleOverrides: { root: { backgroundImage: 'none' } },
+      },
+      MuiCard: {
+        defaultProps: { elevation: 0 },
+        styleOverrides: { root: { border: `1px solid ${t.line}` } },
+      },
+      MuiAppBar: {
+        defaultProps: { elevation: 0, color: 'inherit' },
+        styleOverrides: {
+          root: { backgroundColor: t.base, color: t.ink, borderBottom: `1px solid ${t.line}` },
         },
       },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        elevation3: {
-          boxShadow: '0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06)',
-          transition: 'box-shadow 150ms ease, transform 150ms ease',
-          '&:hover': {
-            boxShadow: '0 4px 14px rgba(0,0,0,.15)',
-            transform: 'translateY(-2px)',
+      MuiDrawer: {
+        styleOverrides: { paper: { backgroundColor: t.base, borderRight: `1px solid ${t.line}` } },
+      },
+      MuiMenu: {
+        styleOverrides: { paper: { border: `1px solid ${t.line}` } },
+      },
+      MuiPopover: {
+        styleOverrides: { paper: { border: `1px solid ${t.line}` } },
+      },
+      MuiDialog: {
+        styleOverrides: { paper: { border: `1px solid ${t.line}` } },
+      },
+      MuiButton: {
+        defaultProps: { disableElevation: true },
+        styleOverrides: { root: { paddingInline: 14 } },
+      },
+      MuiLink: {
+        defaultProps: { underline: 'hover' },
+      },
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: { height: 8, borderRadius: 0, backgroundColor: t.line },
+          bar: { borderRadius: 0 },
+        },
+      },
+      MuiTabs: {
+        defaultProps: { indicatorColor: 'secondary', textColor: 'inherit' },
+        styleOverrides: {
+          root: { borderBottom: `1px solid ${t.line}` },
+          indicator: { height: 2 },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            fontWeight: 600,
+            fontSize: 13,
+            minHeight: 42,
+            color: t.inkSub,
+            opacity: 1,
+            '&.Mui-selected': { color: t.ink },
           },
         },
       },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: { borderRadius: 12, paddingInline: 14, paddingBlock: 8 },
-      },
-    },
-    MuiLinearProgress: {
-      styleOverrides: {
-        root: {
-          borderRadius: 999,
-          height: 8,
-          backgroundColor: 'rgba(0,0,0,.08)',
-        },
-        bar: { borderRadius: 999 },
-      },
-    },
-    MuiTabs: {
-      styleOverrides: {
-        indicator: {
-          height: 3,
-          borderRadius: '3px 3px 0 0',
+      MuiTableCell: {
+        styleOverrides: {
+          root: { borderColor: t.line },
+          head: { fontWeight: 700, color: t.inkSub },
         },
       },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          fontWeight: 700,
-          fontSize: 13,
-          minHeight: 42,
-          letterSpacing: .2,
-        },
-      },
-    },
-    MuiChip: { styleOverrides: { root: { fontWeight: 700 } } },
-    MuiTableCell: {
-      styleOverrides: {
-        root: { borderColor: 'rgba(0,0,0,.07)' },
-        head: {
-          fontWeight: 800,
-          backgroundColor: 'rgba(0,0,0,.04)',
-        },
-      },
-    },
-    MuiDrawer: {
-      styleOverrides: {
-        paper: { borderRight: '1px solid rgba(0,0,0,.1)' },
-      },
-    },
-    MuiToggleButton: {
-      styleOverrides: {
-        root: {
-          fontWeight: 700,
-          '&.Mui-selected': {
-            fontWeight: 800,
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            '&[class*="MuiTableRow-hover"]:hover, &.MuiTableRow-hover:hover': {
+              backgroundColor: mode === 'light' ? 'rgba(43,42,39,.04)' : 'rgba(232,228,218,.05)',
+            },
           },
         },
       },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            fontWeight: 600,
+            color: t.inkSub,
+            borderColor: t.line,
+            '&.Mui-selected': { color: t.ink },
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: { root: { border: '1px solid currentColor', borderColor: t.line } },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: { backgroundColor: t.ink, color: t.base, fontSize: 12 },
+          arrow: { color: t.ink },
+        },
+      },
+      MuiBackdrop: {
+        styleOverrides: {
+          root: { '&:not(.MuiBackdrop-invisible)': { backgroundColor: 'rgba(28, 27, 25, .55)' } },
+        },
+      },
     },
-  },
-  layout: { pageMaxWidth: 1200 },
-});
+    layout: { pageMaxWidth: 1200 },
+  });
+};

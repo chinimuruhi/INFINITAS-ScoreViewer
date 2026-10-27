@@ -9,14 +9,13 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import LampLabel from '../components/LampLabel';
 import FilterPanel from '../components/FilterPanel';
 import { useMode } from '../context/ModeContext';
 import { useFilters } from '../context/FilterContext';
 import { useDataContext } from '../context/DataContext';
 
 import { difficultyKey } from '../constants/difficultyConstrains';
-import { clearColorMap } from '../constants/colorConstrains';
-import { simpleClearName } from '../constants/clearConstrains';
 import { defaultMisscount } from '../constants/defaultValues';
 
 import { getPercentage, getDetailGrade, getGrade } from '../utils/gradeUtils';
@@ -204,7 +203,7 @@ const SongTablePage: React.FC = () => {
     <Page>
       <PageHeader compact title="楽曲一覧" />
       <SectionCard>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -244,7 +243,7 @@ const SongTablePage: React.FC = () => {
           )}
 
           <TableContainer sx={{ mb: 3 }}>
-            <Table size="small" sx={{ minWidth: 700, '& td, & th': { fontSize: { xs: 12, sm: 14 } } }}>
+            <Table size="small" sx={{ minWidth: { xs: 0, sm: 700 }, '& td, & th': { fontSize: { xs: 12, sm: 14 } } }}>
               <TableHead sx={{ display: { xs: 'none', sm: 'table-header-group' } }}>
                 <TableRow>
                   <TableCell sx={{ cursor: 'pointer' }} onClick={() => handleSort('lv')}>☆</TableCell>
@@ -266,9 +265,7 @@ const SongTablePage: React.FC = () => {
                         {acInfDiffMap[Number(s.id)] ? ' (INFINITAS)' : ''}
                       </TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
-                        <Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: clearColorMap[s.lamp] }}>
-                          {simpleClearName[s.lamp] ?? '-'}
-                        </Box>
+                        <LampLabel lamp={s.lamp} />
                       </TableCell>
                       {selectedLevel >= 11 && <TableCell>{Number.isNaN(s.bpi) ? '' : s.bpi}</TableCell>}
                       <TableCell>{getGrade(s.rate)} ({getDetailGrade(s.score, s.notes)})</TableCell>
@@ -282,9 +279,7 @@ const SongTablePage: React.FC = () => {
                         </Typography>
                         <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', color: 'text.secondary', fontSize: 10 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Box sx={{ px: 1, borderRadius: 1, display: 'inline-block', backgroundColor: clearColorMap[s.lamp] }}>
-                              {simpleClearName[s.lamp] ?? '-'}
-                            </Box>
+                            <LampLabel lamp={s.lamp} />
                           </Box>
                           {!Number.isNaN(s.bpi) && <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><span>BPI{s.bpi}</span></Box>}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><span>{getGrade(s.rate)} ({getDetailGrade(s.score, s.notes)})</span></Box>

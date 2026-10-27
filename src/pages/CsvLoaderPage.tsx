@@ -146,7 +146,7 @@ const CsvLoaderPage = () => {
     <Page>
       <PageHeader compact title="CSV/TSV読み込み" />
       <SectionCard>
-        <Container sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
 
           {isDjNameEmpty && (
             <>

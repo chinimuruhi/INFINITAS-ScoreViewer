@@ -120,7 +120,7 @@ const EditDataPage = () => {
     <Page>
       <PageHeader compact title={titleMap[songId] ? `${titleMap[songId]} [${difficulty}]${acInfDiffMap[songId] ? ' (INFINITAS)': ''}` : '曲データが見つかりません'} />
       <SectionCard>
-        <Container sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
 
           {titleMap[songId] ? (
             <>

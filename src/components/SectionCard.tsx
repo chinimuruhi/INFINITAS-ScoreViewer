@@ -1,6 +1,7 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, SxProps } from '@mui/material';
+import { Box, Stack, SxProps, Typography } from '@mui/material';
 
+// ページ本文の区画。カードの枠や影は付けず、余白と見出しだけで区切る
 const SectionCard: React.FC<{
   title?: React.ReactNode;
   subheader?: React.ReactNode;
@@ -9,14 +10,18 @@ const SectionCard: React.FC<{
   sx?: SxProps;
   children: React.ReactNode;
 }> = ({ title, subheader, action, dense, sx, children }) => (
-  <Card sx={{ borderRadius: 3, ...sx }}>
+  <Box component="section" sx={{ pb: dense ? 2 : 3, ...sx }}>
     {(title || action || subheader) && (
-      <CardHeader titleTypographyProps={{ fontWeight: 800 }} title={title} subheader={subheader} action={action} />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+        <Box>
+          {title && <Typography variant="h6">{title}</Typography>}
+          {subheader && <Typography variant="body2" color="text.secondary">{subheader}</Typography>}
+        </Box>
+        {action}
+      </Stack>
     )}
-    <CardContent sx={{ pt: title ? 0 : 2, pb: dense ? 1.5 : 2.5 }}>
-      {children}
-    </CardContent>
-  </Card>
+    {children}
+  </Box>
 );
 
 export default SectionCard;

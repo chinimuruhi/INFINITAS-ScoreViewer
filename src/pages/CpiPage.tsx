@@ -105,7 +105,7 @@ const CpiPage = () => {
     <Page>
       <PageHeader compact title="Clear Power Indicator(CPI)" />
       <SectionCard>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth={false} disableGutters>
           <Backdrop open={loading || commonLoading} sx={{ zIndex: 9999, color: '#fff' }}>
             <CircularProgress color="inherit" />
           </Backdrop>
@@ -126,7 +126,7 @@ const CpiPage = () => {
                   : group.label === '算出対象外' ? '算出対象外'
                     : `CPI ${group.label}`}
               </Typography>
-              <Grid container spacing={{ xs: 1, sm: 2 }} columns={{ xs: 3, sm: 12, md: 12 }}>
+              <Grid container spacing={{ xs: 0.75, sm: 1 }} columns={{ xs: 3, sm: 12, md: 12 }}>
                 {group.songs
                   .sort((a, b) => (b[activeTab]?.cpi_value ?? 0) - (a[activeTab]?.cpi_value ?? 0))
                   .map(song => {

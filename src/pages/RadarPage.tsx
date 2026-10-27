@@ -105,11 +105,11 @@ const RadarPage = () => {
     let dy = 0;
     if (angle === -90) dy = isXs ? 3 : 6;
     return (
-      <text x={x} y={y} dy={dy} textAnchor="middle" fontSize={isXs ? 10 : 20} fill="#000" stroke="#fff" strokeWidth={isXs ? 3 : 3.5} style={{ paintOrder: 'stroke' }}>
+      <text x={x} y={y} dy={dy} textAnchor="middle" fontSize={isXs ? 10 : 20} fill={theme.palette.text.primary} stroke={theme.palette.background.default} strokeWidth={isXs ? 3 : 3.5} style={{ paintOrder: 'stroke' }}>
         {payload?.value}
       </text>
     );
-  }, [isXs]);
+  }, [isXs, theme]);
 
   return (
     <Page>
@@ -123,11 +123,15 @@ const RadarPage = () => {
           <Box sx={{ width: '100%', maxWidth: 520, mx: 'auto', aspectRatio: '1 / 1' }}>
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                <PolarGrid gridType="circle" />
-                <Tooltip formatter={(value: number) => Number(value).toFixed(2)} />
+                <PolarGrid gridType="circle" stroke={theme.palette.divider} />
+                <Tooltip
+                  formatter={(value: number) => Number(value).toFixed(2)}
+                  contentStyle={{ background: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 0, color: theme.palette.text.primary }}
+                  itemStyle={{ color: theme.palette.text.primary }}
+                />
                 <PolarRadiusAxis angle={30} domain={[0, 200]} tick={false} axisLine={false} />
                 <PolarAngleAxis dataKey="subject" tick={renderAngleTick} />
-                <Radar name="Radar" dataKey="A" stroke="#00cc66" fill="#00cc66" fillOpacity={0.6} />
+                <Radar name="Radar" dataKey="A" stroke={theme.palette.primary.main} fill={theme.palette.primary.main} fillOpacity={0.35} />
               </RadarChart>
             </ResponsiveContainer>
           </Box>
@@ -162,13 +166,13 @@ const RadarPage = () => {
                       const key = `${s.id}_${s.diff}_${idx}`;
                       return (
                         <React.Fragment key={key}>
-                          <TableRow sx={{ display: { xs: 'none', sm: 'table-row' } }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
+                          <TableRow hover sx={{ display: { xs: 'none', sm: 'table-row' }, cursor: 'pointer' }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
                             <TableCell>{titleMap[s.id] || s.id} [{s.diff}]</TableCell>
                             <TableCell>{level ? `☆${level}` : '-'}</TableCell>
                             <TableCell>{radarVal.toFixed(2)} / {attrVal.toFixed(2)}</TableCell>
                             <TableCell>{s.score} ({ratePct.toFixed(2)}%)</TableCell>
                           </TableRow>
-                          <TableRow sx={{ display: { xs: 'table-row', sm: 'none' } }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
+                          <TableRow hover sx={{ display: { xs: 'table-row', sm: 'none' }, cursor: 'pointer' }} onClick={() => navigate(`/edit/${s.id}/${difficultyKey.indexOf(s.difficulty)}`)}>
                             <TableCell colSpan={4} sx={{ py: 1.25 }}>
                               <Typography variant="body2" fontWeight={700} noWrap>
                                 {titleMap[s.id] || s.id} [{s.diff}]
