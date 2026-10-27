@@ -23,6 +23,9 @@ import { bpiGapColor, scoreColorMap } from '../constants/colorConstrains';
 import { Page, PageHeader } from '../components/Page';
 import { useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
+import { Note } from '../components/Notes';
+import { Link as MuiLink } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import AchieveBars from '../components/AchieveBars';
 import { tileTone } from '../utils/colorUtils';
 import { difficultyKey } from '../constants/difficultyConstrains';
@@ -178,12 +181,13 @@ const BpiPage = () => {
             <CircularProgress color="inherit" />
           </Backdrop>
 
-          <Typography variant="h6" gutterBottom>
-            {`総合BPI(☆${level}): ${totalBpi.toFixed(2)}`}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            現在の定義データは Ver.{bpiVersion} です。設定より定義データを選択できます。
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">総合BPI（☆{level}）</Typography>
+            <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 700, lineHeight: 1.2 }}>{totalBpi.toFixed(2)}</Typography>
+          </Box>
+          <Note>
+            定義データ Ver.{bpiVersion}（<MuiLink component={RouterLink} to="/settings" color="inherit">設定</MuiLink>で変更できます）
+          </Note>
 
           <AchieveBars
             totalCount={totalCount}

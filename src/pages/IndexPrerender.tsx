@@ -23,12 +23,8 @@ const IndexPrerender: React.FC = () => {
     <div className="pr">
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <header style={{ paddingBottom: 32 }}>
-        <p className="eyebrow">INFINITAS Score Viewer</p>
         <h1>beatmania IIDXのスコア・ランプを可視化</h1>
-        <p className="lead">
-          INFINITASデータや手動入力のデータも、ACと同様の指標で可視化します。
-          ユーザ登録は不要で、データはお使いの端末のブラウザ（LocalStorage）に保存されます。
-        </p>
+        <p className="lead">INFINITASや手動入力のデータも、ACと同じ指標で。</p>
         <p>
           <a className="cta" href={`${BASE}/register`}>利用する（CSV読み込みへ）</a>
           <a href="https://github.com/chinimuruhi/INFINITAS-ScoreViewer" target="_blank" rel="noreferrer" style={{ marginLeft: 16 }}>

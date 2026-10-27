@@ -23,6 +23,7 @@ import { bpiGapColor, scoreColorMap } from '../constants/colorConstrains';
 import { Page, PageHeader } from '../components/Page';
 import { useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
+import { Note } from '../components/Notes';
 import AchieveBars from '../components/AchieveBars';
 import { tileTone } from '../utils/colorUtils';
 import { difficultyKey } from '../constants/difficultyConstrains';
@@ -155,12 +156,11 @@ const Bpim2Page = () => {
             <CircularProgress color="inherit" />
           </Backdrop>
 
-          <Typography variant="h6" gutterBottom>
-            {`総合BPI(☆${level}): ${totalBpi.toFixed(2)}`}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            BPIM2の定義データ・算出式(BPI V2)を使用しています。未プレイ譜面は推定値として総合BPIに反映されます。
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">総合BPI（☆{level}）</Typography>
+            <Typography sx={{ fontSize: { xs: 26, sm: 30 }, fontWeight: 700, lineHeight: 1.2 }}>{totalBpi.toFixed(2)}</Typography>
+          </Box>
+          <Note>BPIM2の定義データ・算出式（BPI V2）を使用しています。未プレイ譜面は推定値として総合BPIに反映されます。</Note>
 
           <AchieveBars
             totalCount={totalCount}

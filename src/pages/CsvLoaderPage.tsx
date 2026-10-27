@@ -11,6 +11,7 @@ import { useAppContext } from '../context/AppContext';
 import LinkComponent from '../components/LinkComponent';
 import { Page, PageHeader } from '../components/Page';
 import SectionCard from '../components/SectionCard';
+import { Note, NoteGroup } from '../components/Notes';
 
 const CsvLoaderPage = () => {
   const navigate = useNavigate();
@@ -191,26 +192,24 @@ const CsvLoaderPage = () => {
                     <MenuItem value="DP">DP</MenuItem>
                   </Select>
                 </FormControl>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  beatmania IIDXの公式HP(<LinkComponent url="https://p.eagate.573.jp/game/2dx/">https://p.eagate.573.jp/game/2dx/</LinkComponent>)からダウンロードできるスコアデータCSVです。
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  文字コードはUTF-8 with BOMを想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。CSVのダウンロードにはbeatmania IIDX プレミアムコース登録が必要となります。
-                </Typography>
-                <Alert severity="warning">
-                  統計の充実のため、公式HPからダウンロードしたCSVは各本家サイトでもスコアデータの登録を行うことを推奨します。
-                </Alert>
+                <NoteGroup>
+                  <Note>
+                    <LinkComponent url="https://p.eagate.573.jp/game/2dx/">beatmania IIDX公式サイト</LinkComponent>からダウンロードできるスコアデータCSVです。ダウンロードにはプレミアムコース登録が必要です。
+                  </Note>
+                  <Note>文字コードはUTF-8 with BOMを想定しています。CSVを手動で修正する場合はご注意ください。</Note>
+                  <Note warning>統計の充実のため、公式サイトのCSVは各本家サイトにもスコアデータを登録することを推奨します。</Note>
+                </NoteGroup>
               </>
             )}
 
             {format === 'idc' && (
               <>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  INFINITAS打鍵カウンタ（<LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">https://github.com/dj-kata/inf_daken_counter_obsw</LinkComponent>）で出力できるCSVです。
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  文字コードはShift JISまたはUTF-8 with BOMに対応しています。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
-                </Typography>
+                <NoteGroup>
+                  <Note>
+                    <LinkComponent url="https://github.com/dj-kata/inf_daken_counter_obsw">INFINITAS打鍵カウンタ</LinkComponent>で出力できるCSVです。
+                  </Note>
+                  <Note>文字コードはShift JISまたはUTF-8 with BOMに対応しています。CSVを手動で修正する場合はご注意ください。</Note>
+                </NoteGroup>
               </>
             )}
 
@@ -228,31 +227,28 @@ const CsvLoaderPage = () => {
                     <MenuItem value="DP">DP</MenuItem>
                   </Select>
                 </FormControl>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  INFINITASリザルト手帳（<LinkComponent url="https://github.com/kaktuswald/inf-notebook/wiki">https://github.com/kaktuswald/inf-notebook/wiki</LinkComponent>）で出力できるSP.csvまたはDP.csvを想定しています。
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  文字コードはUTF-8を想定しております。CSVファイルの手動修正を行う場合は文字コードにご注意ください。
-                </Typography>
+                <NoteGroup>
+                  <Note>
+                    <LinkComponent url="https://github.com/kaktuswald/inf-notebook/wiki">INFINITASリザルト手帳</LinkComponent>で出力できるSP.csvまたはDP.csvを想定しています。
+                  </Note>
+                  <Note>文字コードはUTF-8を想定しています。CSVを手動で修正する場合はご注意ください。</Note>
+                </NoteGroup>
               </>
             )}
 
             {format === 'reflux' && (
               <>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  Reflux（<LinkComponent url="https://github.com/olji/Reflux">https://github.com/olji/Reflux</LinkComponent>）で出力できるTSVです。
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 2 }}>
-                  文字コードはUTF-8を想定しております。TSVファイルの手動修正を行う場合は文字コードにご注意ください。
-                </Typography>
-                <Alert severity="warning">
-                  読み込み形式としては対応しておりますが、Refluxの使用を推奨するものではありません。使用は自己責任でお願いいたします。
-                </Alert>
+                <NoteGroup>
+                  <Note>
+                    <LinkComponent url="https://github.com/olji/Reflux">Reflux</LinkComponent>で出力できるTSVです。文字コードはUTF-8を想定しています。
+                  </Note>
+                  <Note warning>読み込み形式としては対応していますが、Refluxの使用を推奨するものではありません。使用は自己責任でお願いいたします。</Note>
+                </NoteGroup>
               </>
             )}
           </Box>
 
-          <Button variant="contained" component="label">
+          <Button variant="contained" component="label" sx={{ width: { xs: '100%', sm: 'auto' } }}>
             ファイルを選択
             <input type="file" hidden onChange={handleFileUpload} />
           </Button>
@@ -289,14 +285,9 @@ const CsvLoaderPage = () => {
               <Box>
                 {failedTitles.map((title, i) => <div key={i}>{title}</div>)}
               </Box>
-              <Alert severity="warning">
-                <Typography variant="body2" gutterBottom>
-                  新曲の読み込みの対応についてはtextage様に追加されてから最大一週間程度かかります。
-                </Typography>
-                <Typography variant="body2">
-                  当サイトの楽曲リストは毎週水曜午前10時に更新を行っておりますので、更新後再度読み込みをお願いいたします。
-                </Typography>
-              </Alert>
+              <Box sx={{ mt: 2 }}>
+                <Note warning>新曲はtextage様に追加されてから対応まで最大1週間程度かかります。楽曲リストは毎週水曜午前10時に更新されますので、更新後に再度読み込みをお願いいたします。</Note>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleReport}>報告する</Button>

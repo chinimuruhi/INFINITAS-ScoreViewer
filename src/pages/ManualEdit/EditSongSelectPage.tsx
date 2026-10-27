@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Container, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Alert } from '@mui/material';
+import { Container, Typography, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ungzip } from 'pako';
 import { useAppContext } from '../../context/AppContext';
@@ -7,6 +7,7 @@ import { generateSearchText } from '../../utils/titleUtils';
 import { difficultyKey } from '../../constants/difficultyConstrains';
 import { Page, PageHeader } from '../../components/Page';
 import SectionCard from '../../components/SectionCard';
+import { Note, NoteGroup } from '../../components/Notes';
 import { acInfDiffMap } from '../../constants/titleConstrains';
 
 const EditSongSelectPage = () => {
@@ -88,15 +89,13 @@ const EditSongSelectPage = () => {
         <Container maxWidth={false} disableGutters>
 
           <Box sx={{ mb: 2 }}>
-            <Button variant="contained" onClick={handleResetClick} sx={{ mb: 2 }}>
+            <Button variant="outlined" onClick={handleResetClick}>
               更新差分クリア
             </Button>
-            <Typography variant="body2">
-              このページで登録したデータは更新差分ページにも追加されます。プレー日が変わる度に、更新差分クリアすることを推奨します。
-            </Typography>
-            <Typography variant="body2">
-              ※ 登録したスコアは削除されません。
-            </Typography>
+            <NoteGroup sx={{ mb: 0 }}>
+              <Note>このページで登録したデータは更新差分ページにも追加されます。プレー日が変わるたびに更新差分をクリアすることを推奨します（登録したスコアは削除されません）。</Note>
+              <Note>新曲はtextage様に追加されてから対応まで最大1週間程度かかります。楽曲リストは毎週水曜午前10時に更新されます。</Note>
+            </NoteGroup>
           </Box>
 
           {/* 曲名検索 */}
@@ -122,14 +121,6 @@ const EditSongSelectPage = () => {
             </Select>
           </FormControl>
 
-          <Alert severity="warning">
-            <Typography variant="body2" gutterBottom>
-              新曲の読み込みの対応についてはtextage様に追加されてから最大一週間程度かかります。
-            </Typography>
-            <Typography variant="body2">
-              当サイトの楽曲リストは毎週水曜午前10時に更新を行っておりますので、更新後再度読み込みをお願いいたします。
-            </Typography>
-          </Alert>
 
           <TableContainer sx={{ mb: 3 }}>
             <Table>

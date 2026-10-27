@@ -10,6 +10,7 @@ import { simpleClearName } from '../../constants/clearConstrains';
 import { defaultMisscount } from '../../constants/defaultValues';
 import { Page, PageHeader } from '../../components/Page';
 import SectionCard from '../../components/SectionCard';
+import { Note } from '../../components/Notes';
 import { acInfDiffMap } from '../../constants/titleConstrains';
 
 
@@ -189,11 +190,7 @@ const EditDataPage = () => {
                 sx={{ my: 2 }}
               />
               {forceUpdate && (
-                <>
-                  <Alert severity="warning">
-                    ランプ、スコア、BPが良くなっていない場合も更新します。更新差分は削除されますのでご注意ください。
-                  </Alert>
-                </>
+                <Note warning>ランプ、スコア、BPが良くなっていない場合も更新します。更新差分は削除されます。</Note>
               )}
 
               <Box mt={2}>

@@ -11,6 +11,8 @@ import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 import { Link as RouterLink } from 'react-router-dom';
 
 const updates: { date: string; text: string }[] = [
+  { date: '2026/10/28', text: '譜面カテゴリフィルタの追加、デザインの変更・ダークモードの対応' },
+  { date: '2026/10/8', text: 'BPIM2に対応' },
   { date: '2026/6/15', text: '主に表示に関する軽微な修正' },
   { date: '2026/5/21', text: 'フィルタ状態をlocalstrageに保存するように（提供：laskarina様）' },
   { date: '2025/10/20', text: 'リザルト手帳CSVに対応' },
@@ -27,15 +29,11 @@ const Index: React.FC = () => {
     <Box sx={{ py: { xs: 4, md: 6 } }}>
       {/* 導入 */}
       <Box component="header" sx={{ maxWidth: 760, pb: { xs: 4, md: 5 } }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        <Typography component="h1" sx={{ fontWeight: 700, fontSize: { xs: '1.625rem', md: '2.125rem' }, lineHeight: 1.35 }}>
           INFINITAS Score Viewer
         </Typography>
-        <Typography component="h1" sx={{ fontWeight: 700, fontSize: { xs: '1.625rem', md: '2.125rem' }, lineHeight: 1.35 }}>
-          beatmania IIDXのスコア・ランプを可視化
-        </Typography>
-        <Typography sx={{ mt: 2, fontSize: { xs: 15, md: 17 }, color: 'text.secondary' }}>
-          INFINITASデータや手動入力のデータも、ACと同様の指標で可視化します。
-          ユーザ登録は不要で、データはお使いの端末のブラウザ（LocalStorage）に保存されます。
+        <Typography sx={{ mt: 1.5, fontSize: { xs: 14, md: 16 }, color: 'text.secondary' }}>
+          INFINITASや手動入力のデータも、ACと同じ指標で。
         </Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
@@ -52,12 +50,6 @@ const Index: React.FC = () => {
             GitHub
           </Button>
         </Stack>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          キャッシュ削除などでデータが消える可能性があるため、
-          <MuiLink component={RouterLink} to="/settings">設定</MuiLink>
-          から定期的なバックアップを推奨します。
-        </Typography>
       </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, columnGap: 6 }}>
@@ -92,7 +84,8 @@ const Index: React.FC = () => {
               </ItemLink>
             </li>
             <li><ItemLink href="https://cpi.makecir.com/">Clear Power Indicator(CPI)</ItemLink></li>
-            <li><ItemLink href="https://bpi.poyashi.me/">Beat Power Indicator(BPI)</ItemLink></li>
+            <li><ItemLink href="https://bpi.poyashi.me/">Beat Power Indicator Manager(BPI)</ItemLink></li>
+            <li><ItemLink href="https://bpi2.poyashi.me/">Beat Power Indicator Manager2(BPI)</ItemLink></li>
             <li><ItemLink href="https://bm2dx.com/IIDX/notes_radar/">ノーツレーダー</ItemLink></li>
             <li><ItemLink href="https://zasa.sakura.ne.jp/dp/">DP非公式難易度表</ItemLink></li>
             <li><ItemLink href="http://ereter.net/iidxsongs/analytics/combined/">ereter's dp laboratory</ItemLink></li>
@@ -135,6 +128,11 @@ const Index: React.FC = () => {
           <Typography variant="body2">
             本サイトは非公式であり、株式会社コナミアミューズメント様とは一切関係ありません。
             本サイトをご利用中に何かしらのトラブルが発生したとしても、運営者は一切の責任を負いません。
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            データはお使いの端末のブラウザ（LocalStorage）に保存されます。キャッシュ削除などで消える可能性があるため、
+            <MuiLink component={RouterLink} to="/settings">設定</MuiLink>
+            から定期的なバックアップを推奨します。
           </Typography>
         </Section>
       </Box>
